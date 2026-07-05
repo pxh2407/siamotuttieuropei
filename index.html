@@ -1,0 +1,1024 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Siamo Tutti Europei</title>
+<style>
+  :root{
+    --blu:#003399;        /* blu bandiera UE */
+    --oro:#FFCC00;        /* oro bandiera UE */
+    --blu-chiaro:#2E77D0;
+    --verde:#1f8a3b;
+    --rosso:#C0392B;
+    --mare:#cfe3f7;
+    --carta:#fffdf5;
+    --testo:#1a1a2e;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;font-family:"Segoe UI",Tahoma,Verdana,sans-serif;color:var(--testo);background:#eef3fb;font-size:18px;}
+  h1,h2,h3{margin:.2em 0;}
+  button{font-family:inherit;font-size:1rem;cursor:pointer;border:none;border-radius:10px;padding:.6em 1em;background:var(--blu);color:#fff;font-weight:600;transition:transform .08s,box-shadow .15s;}
+  button:hover:not(:disabled){transform:translateY(-2px);box-shadow:0 4px 10px rgba(0,0,0,.2);}
+  button:disabled{opacity:.45;cursor:not-allowed;}
+  button.oro{background:var(--oro);color:#222;}
+  button.verde{background:var(--verde);}
+  button.rosso{background:var(--rosso);}
+  button.ghost{background:#fff;color:var(--blu);border:2px solid var(--blu);}
+
+  /* ---- SCHERMATA INIZIALE ---- */
+  #setup{max-width:760px;margin:24px auto;background:var(--carta);border-radius:18px;padding:28px 32px;box-shadow:0 8px 30px rgba(0,0,0,.12);border-top:8px solid var(--oro);}
+  #setup h1{color:var(--blu);font-size:2.4rem;letter-spacing:.5px;}
+  .stelle{color:var(--oro);font-size:1.6rem;letter-spacing:2px;}
+  .num-giocatori{display:flex;gap:10px;flex-wrap:wrap;margin:14px 0;}
+  .num-giocatori button{min-width:54px;}
+  .num-giocatori button.sel{background:var(--oro);color:#222;outline:3px solid var(--blu);}
+  .riga-nome{display:flex;align-items:center;gap:10px;margin:8px 0;}
+  .riga-nome .pallino{width:22px;height:22px;border-radius:50%;flex:0 0 auto;border:2px solid #0003;}
+  .riga-nome input{flex:1;font-size:1.1rem;padding:.5em .7em;border:2px solid #bbb;border-radius:8px;}
+
+  /* ---- GIOCO ---- */
+  #gioco{display:none;}
+  .topbar{background:var(--blu);color:#fff;display:flex;align-items:center;justify-content:space-between;padding:10px 18px;flex-wrap:wrap;gap:8px;}
+  .topbar h1{font-size:1.4rem;}
+  .topbar .stelle{font-size:1.1rem;}
+  .layout{display:flex;gap:16px;padding:16px;align-items:flex-start;flex-wrap:wrap;}
+  .mappa-box{flex:1 1 560px;min-width:340px;background:var(--carta);border-radius:16px;padding:10px;box-shadow:0 6px 20px rgba(0,0,0,.1);}
+  svg{width:100%;height:auto;display:block;border-radius:12px;background:var(--mare);}
+  .pannello{flex:1 1 360px;min-width:320px;display:flex;flex-direction:column;gap:14px;}
+  .card{background:var(--carta);border-radius:14px;padding:14px 16px;box-shadow:0 4px 14px rgba(0,0,0,.08);}
+  .turno-banner{font-size:1.3rem;font-weight:700;display:flex;align-items:center;gap:10px;border-left:10px solid #999;padding-left:12px;}
+  .dado-area{display:flex;align-items:center;gap:14px;flex-wrap:wrap;}
+  .dado{width:64px;height:64px;border-radius:12px;background:#fff;border:3px solid var(--blu);display:flex;align-items:center;justify-content:center;font-size:2rem;font-weight:800;color:var(--blu);}
+  #actions{display:flex;flex-direction:column;gap:8px;}
+  #actions button{text-align:left;}
+  .scorerow{display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid #0001;}
+  .scorerow .pallino{width:18px;height:18px;border-radius:50%;flex:0 0 auto;}
+  .scorerow.attivo{background:#fff7d6;border-radius:8px;padding:6px;}
+  .merce-chip{display:inline-block;background:#eef;border-radius:20px;padding:2px 10px;margin:2px;font-size:.95rem;border:1px solid #ccd;}
+  .contratto{background:#eef6ff;border:2px dashed var(--blu-chiaro);border-radius:10px;padding:8px 10px;margin-top:6px;font-size:1.05rem;}
+  #log{height:150px;overflow-y:auto;font-size:.95rem;background:#fff;border-radius:8px;padding:8px;border:1px solid #ddd;}
+  #log p{margin:2px 0;padding:2px 4px;border-radius:4px;}
+  details summary{cursor:pointer;font-weight:600;color:var(--blu);}
+  details p,details li{font-size:.98rem;line-height:1.4;}
+
+  /* ---- MODALE ---- */
+  #overlay{display:none;position:fixed;inset:0;background:rgba(0,20,60,.55);align-items:center;justify-content:center;z-index:50;padding:16px;}
+  #modal{background:#fff;border-radius:18px;max-width:560px;width:100%;padding:26px;box-shadow:0 10px 40px rgba(0,0,0,.4);border-top:10px solid var(--oro);animation:pop .25s ease;max-height:90vh;overflow-y:auto;}
+  @keyframes pop{from{transform:scale(.85);opacity:0;}to{transform:scale(1);opacity:1;}}
+  #modal h2{color:var(--blu);}
+  .opzioni{display:flex;flex-direction:column;gap:10px;margin-top:14px;}
+  .opzioni button{font-size:1.1rem;padding:.8em 1em;background:#fff;color:var(--testo);border:2px solid var(--blu);}
+  .opzioni button:hover{background:#eef3ff;}
+  .opzioni button.giusta{background:var(--verde);color:#fff;border-color:var(--verde);}
+  .opzioni button.sbagliata{background:var(--rosso);color:#fff;border-color:var(--rosso);}
+  .feedback{font-size:1.15rem;font-weight:700;margin-top:14px;text-align:center;}
+  .tmr{display:flex;align-items:center;gap:10px;margin-top:14px;}
+  .tmr .barra{flex:1;height:12px;background:#e5e9f0;border-radius:8px;overflow:hidden;}
+  .tmr .barra>div{height:100%;background:var(--verde);width:100%;transition:width 1s linear;}
+  .tmr .sec{font-weight:800;color:var(--blu);min-width:44px;text-align:right;}
+  .truck-label{font-weight:700;}
+  @media(max-width:600px){html,body{font-size:16px;}}
+</style>
+</head>
+<body>
+
+<!-- ================= SCHERMATA INIZIALE ================= -->
+<div id="setup">
+  <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;">
+    <div class="stelle">★★★★★★★★★★★★</div>
+    <button class="ghost btnLang" onclick="toggleLang()">🌐 English</button>
+  </div>
+  <h1>SIAMO TUTTI EUROPEI</h1>
+  <p id="introTxt" style="font-size:1.1rem;"></p>
+
+  <h3 id="hNum"></h3>
+  <div class="num-giocatori" id="numGiocatori"></div>
+
+  <h3 id="hNomi"></h3>
+  <div id="righeNomi"></div>
+
+  <div style="margin-top:18px;display:flex;gap:12px;align-items:center;flex-wrap:wrap;">
+    <button id="btnStart" class="oro" style="font-size:1.25rem;padding:.7em 1.6em;" onclick="avviaPartita()"></button>
+    <label style="font-size:1rem;"><input type="checkbox" id="audioOn" checked> <span id="lblSuoni"></span></label>
+  </div>
+
+  <details style="margin-top:20px;">
+    <summary id="sumRegole"></summary>
+    <ul id="ulRegole"></ul>
+  </details>
+</div>
+
+<!-- ================= GIOCO ================= -->
+<div id="gioco">
+  <div class="topbar">
+    <h1>🇪🇺 Siamo Tutti Europei</h1>
+    <div class="stelle">★★★★★★★★★★★★</div>
+    <div>
+      <button class="ghost btnLang" style="background:transparent;color:#fff;border-color:#fff;" onclick="toggleLang()">🌐 English</button>
+      <button id="btnRegole" class="ghost" style="background:transparent;color:#fff;border-color:#fff;" onclick="mostraRegole()">📖 Regole</button>
+      <button class="ghost" style="background:transparent;color:#fff;border-color:#fff;" onclick="toggleAudio()" id="btnAudio">🔊</button>
+      <button id="btnNuova" class="ghost" style="background:transparent;color:#fff;border-color:#fff;" onclick="nuovaPartita()">↺ Nuova partita</button>
+    </div>
+  </div>
+
+  <div class="layout">
+    <div class="mappa-box">
+      <svg id="board" viewBox="75 350 785 655" aria-label="Mappa d'Europa"></svg>
+    </div>
+
+    <div class="pannello">
+      <div class="card">
+        <div class="turno-banner" id="turnoBanner">Tocca a…</div>
+        <div class="dado-area" style="margin-top:12px;">
+          <div class="dado" id="dadoView">–</div>
+          <button class="oro" id="btnDado" style="font-size:1.15rem;" onclick="tiraDado()">🎲 Tira il dado</button>
+        </div>
+        <div id="actions" style="margin-top:12px;"></div>
+      </div>
+
+      <div class="card" id="cardGiocatore"></div>
+
+      <div class="card">
+        <h3 id="hClass" style="margin-top:0;">🏆 Classifica</h3>
+        <div id="scoreboard"></div>
+      </div>
+
+      <div class="card">
+        <h3 id="hDiario" style="margin-top:0;">📜 Diario di gioco</h3>
+        <div id="log"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ================= MODALE ================= -->
+<div id="overlay"><div id="modal"></div></div>
+
+<script>
+/* ============================================================
+   DATI DI GIOCO
+   ============================================================ */
+const MERCI = {
+  Formaggio:"🧀", Auto:"🚗", Orologi:"⌚", Vino:"🍷", Legname:"🪵"
+};
+const NAZIONI = ["Italia","Svizzera","Germania","Belgio","Francia","Spagna","Austria"];
+
+/* ============================================================
+   LINGUA (Italiano / English)
+   ============================================================ */
+let lang = 'it';
+function tr(it,en){ return lang==='en'?en:it; }          // testo a due lingue
+const _k = ()=> lang==='en'?1:0;
+const NAZ_T = {                                          // nomi nazioni
+  Italia:["Italia","Italy"], Svizzera:["Svizzera","Switzerland"], Germania:["Germania","Germany"],
+  Belgio:["Belgio","Belgium"], Francia:["Francia","France"], Spagna:["Spagna","Spain"], Austria:["Austria","Austria"]
+};
+const MERCE_T = {                                        // nomi merci
+  Formaggio:["Formaggio","Cheese"], Auto:["Auto","Car"], Orologi:["Orologi","Watches"],
+  Vino:["Vino","Wine"], Legname:["Legname","Timber"]
+};
+const CITY_T = {                                         // nomi città (solo dove differiscono)
+  Roma:"Rome", Milano:"Milan", Napoli:"Naples", Venezia:"Venice", Monaco:"Munich",
+  Colonia:"Cologne", Bruxelles:"Brussels", Anversa:"Antwerp", Parigi:"Paris", Lione:"Lyon",
+  Marsiglia:"Marseille", Barcellona:"Barcelona", Siviglia:"Seville", Ginevra:"Geneva",
+  Berna:"Bern", Zurigo:"Zurich"
+};
+function naz(n){ return NAZ_T[n]?NAZ_T[n][_k()]:n; }
+function merce(g){ return MERCE_T[g]?MERCE_T[g][_k()]:g; }
+function citta(c){ return (lang==='en'&&CITY_T[c])?CITY_T[c]:c; }
+function locQ(q){ const i=_k(); return {q:q.q[i], o:q.o.map(o=>o[i]), a:q.a}; } // localizza una domanda
+
+// Caselle del percorso: {n=nazione, t=tipo, city, x, y, goods?}
+// tipo: start | normal | frontier | blue | arena | pickup
+// Coordinate riferite all'immagine di sfondo Mappa png.png (1396 x 1080)
+const CELLE = [
+  {n:"Italia",   t:"pickup", city:"Roma",       x:755,y:755, goods:["Vino","Formaggio"]},
+  {n:"Italia",   t:"normal", city:"Napoli",     x:800,y:825, lab:{dy:33}},
+  {n:"Italia",   t:"blue",   city:"Milano",     x:665,y:705},
+  {n:"Svizzera", t:"frontier",city:"Frontiera", x:685,y:656, small:true},
+  {n:"Svizzera", t:"pickup", city:"Zurigo",     x:700,y:618, goods:["Orologi"], small:true, lab:{dx:14,dy:-18,a:"start"}},
+  {n:"Svizzera", t:"normal", city:"Berna",      x:660,y:630, small:true, lab:{dx:-20,dy:-8,a:"end"}},
+  {n:"Germania", t:"frontier",city:"Frontiera", x:676,y:606, small:true},
+  {n:"Germania", t:"normal", city:"Monaco",     x:715,y:560},
+  {n:"Germania", t:"arena",  city:"Berlino",    x:800,y:400, goods:["Auto"]},
+  {n:"Germania", t:"normal", city:"Colonia",    x:705,y:485},
+  {n:"Belgio",   t:"frontier",city:"Frontiera", x:661,y:477},
+  {n:"Belgio",   t:"blue",   city:"Bruxelles",  x:620,y:470, lab:{dx:-20,dy:30,a:"end"}},
+  {n:"Belgio",   t:"normal", city:"Anversa",    x:615,y:448, lab:{dx:21,dy:4,a:"start"}},
+  {n:"Francia",  t:"frontier",city:"Frontiera", x:583,y:459},
+  {n:"Francia",  t:"arena",  city:"Parigi",     x:468,y:500, goods:["Vino","Formaggio"]},
+  {n:"Francia",  t:"normal", city:"Lione",      x:518,y:622},
+  {n:"Francia",  t:"normal", city:"Marsiglia",  x:560,y:725},
+  {n:"Spagna",   t:"frontier",city:"Frontiera", x:372,y:739, small:true},
+  {n:"Spagna",   t:"pickup", city:"Barcellona", x:325,y:742, goods:["Vino"], lab:{dx:-23,dy:5,a:"end"}},
+  {n:"Spagna",   t:"normal", city:"Madrid",     x:238,y:826},
+  {n:"Spagna",   t:"normal", city:"Siviglia",   x:175,y:895},
+  {n:"Francia",  t:"frontier",city:"Frontiera", x:355,y:715, small:true},
+  {n:"Francia",  t:"normal", city:"Bordeaux",   x:380,y:690},
+  {n:"Svizzera", t:"frontier",city:"Frontiera", x:612,y:650, small:true},
+  {n:"Svizzera", t:"normal", city:"Ginevra",    x:638,y:645, small:true, lab:{dx:-10,dy:26,a:"end"}},
+  {n:"Austria",  t:"pickup", city:"Innsbruck",  x:775,y:608, goods:["Legname"]},
+  {n:"Italia",   t:"frontier",city:"Frontiera", x:783,y:641, small:true},
+  {n:"Italia",   t:"normal", city:"Venezia",    x:792,y:682, lab:{dx:10}},
+];
+const N = CELLE.length;
+
+// Etichette delle nazioni da sovrapporre alla mappa (coordinate immagine)
+const NAZ_LABEL = [
+  {nome:"FRANCIA",  x:445,y:590},
+  {nome:"SPAGNA",   x:255,y:800},
+  {nome:"GERMANIA", x:850,y:480},
+  {nome:"ITALIA",   x:715,y:800},
+  {nome:"AUSTRIA",  x:890,y:655},
+];
+
+// Domande per nazione — formato bilingue: q:[it,en], o:[[it,en],...]
+const DOM_NAZIONE = {
+  Italia:[
+    {q:["Qual è la capitale d'Italia?","What is the capital of Italy?"],o:[["Roma","Rome"],["Milano","Milan"],["Napoli","Naples"],["Torino","Turin"]],a:0},
+    {q:["Quale fiume attraversa Roma?","Which river flows through Rome?"],o:[["Il Tevere","The Tiber"],["Il Po","The Po"],["L'Arno","The Arno"],["L'Adige","The Adige"]],a:0},
+    {q:["Vero o Falso: l'Italia fu tra i 6 paesi fondatori della CEE (1957).","True or False: Italy was one of the 6 founding countries of the EEC (1957)."],o:[["Vero","True"],["Falso","False"]],a:0},
+  ],
+  Francia:[
+    {q:["Qual è la capitale della Francia?","What is the capital of France?"],o:[["Parigi","Paris"],["Lione","Lyon"],["Marsiglia","Marseille"],["Nizza","Nice"]],a:0},
+    {q:["In quale città francese ha sede il Parlamento Europeo?","In which French city is the European Parliament based?"],o:[["Strasburgo","Strasbourg"],["Parigi","Paris"],["Lione","Lyon"],["Bordeaux","Bordeaux"]],a:0},
+    {q:["Vero o Falso: la Francia confina con la Spagna.","True or False: France borders Spain."],o:[["Vero","True"],["Falso","False"]],a:0},
+  ],
+  Germania:[
+    {q:["Qual è la capitale della Germania?","What is the capital of Germany?"],o:[["Berlino","Berlin"],["Monaco","Munich"],["Amburgo","Hamburg"],["Francoforte","Frankfurt"]],a:0},
+    {q:["In che anno è caduto il Muro di Berlino?","In what year did the Berlin Wall fall?"],o:[["1989","1989"],["1979","1979"],["1991","1991"],["1968","1968"]],a:0},
+    {q:["Vero o Falso: la Germania è il paese più popoloso dell'Unione Europea.","True or False: Germany is the most populous country in the European Union."],o:[["Vero","True"],["Falso","False"]],a:0},
+  ],
+  Svizzera:[
+    {q:["Qual è la capitale della Svizzera?","What is the capital of Switzerland?"],o:[["Berna","Bern"],["Zurigo","Zurich"],["Ginevra","Geneva"],["Basilea","Basel"]],a:0},
+    {q:["La Svizzera fa parte dell'Unione Europea?","Is Switzerland part of the European Union?"],o:[["No","No"],["Sì","Yes"]],a:0},
+    {q:["Quale prodotto è tipico della Svizzera?","Which product is typical of Switzerland?"],o:[["Orologi","Watches"],["Automobili","Cars"],["Legname","Timber"],["Olio","Oil"]],a:0},
+  ],
+  Spagna:[
+    {q:["Qual è la capitale della Spagna?","What is the capital of Spain?"],o:[["Madrid","Madrid"],["Barcellona","Barcelona"],["Siviglia","Seville"],["Valencia","Valencia"]],a:0},
+    {q:["Quale famosa basilica di Gaudí si trova a Barcellona?","Which famous Gaudí basilica is in Barcelona?"],o:[["Sagrada Família","Sagrada Família"],["Notre-Dame","Notre-Dame"],["Duomo","Cathedral"],["Alhambra","Alhambra"]],a:0},
+    {q:["Vero o Falso: la Spagna usa l'euro.","True or False: Spain uses the euro."],o:[["Vero","True"],["Falso","False"]],a:0},
+  ],
+  Austria:[
+    {q:["Qual è la capitale dell'Austria?","What is the capital of Austria?"],o:[["Vienna","Vienna"],["Salisburgo","Salzburg"],["Graz","Graz"],["Innsbruck","Innsbruck"]],a:0},
+    {q:["Quale grande compositore nacque a Salisburgo (Austria)?","Which great composer was born in Salzburg (Austria)?"],o:[["Mozart","Mozart"],["Beethoven","Beethoven"],["Verdi","Verdi"],["Chopin","Chopin"]],a:0},
+    {q:["Vero o Falso: l'Austria confina con l'Italia.","True or False: Austria borders Italy."],o:[["Vero","True"],["Falso","False"]],a:0},
+  ],
+  Belgio:[
+    {q:["Qual è la capitale del Belgio?","What is the capital of Belgium?"],o:[["Bruxelles","Brussels"],["Anversa","Antwerp"],["Gand","Ghent"],["Bruges","Bruges"]],a:0},
+    {q:["A Bruxelles ha sede principale quale istituzione europea?","Which European institution is mainly based in Brussels?"],o:[["La Commissione Europea","The European Commission"],["La BCE","The ECB"],["La Corte dei Conti","The Court of Auditors"],["Il FMI","The IMF"]],a:0},
+    {q:["Vero o Falso: in Belgio si parlano francese e neerlandese.","True or False: French and Dutch are spoken in Belgium."],o:[["Vero","True"],["Falso","False"]],a:0},
+  ],
+};
+// Domande generali sull'Europa e le istituzioni (per Arena / Il Momento)
+const DOM_GENERALI = [
+  {q:["Quante stelle ci sono sulla bandiera europea?","How many stars are on the European flag?"],o:[["12","12"],["27","27"],["15","15"],["9","9"]],a:0},
+  {q:["Cosa rappresentano le stelle della bandiera UE?","What do the stars on the EU flag represent?"],o:[["Unità, solidarietà e armonia","Unity, solidarity and harmony"],["Il numero degli Stati membri","The number of member states"],["Le lingue ufficiali","The official languages"],["I mari d'Europa","The seas of Europe"]],a:0},
+  {q:["In quale città ha sede la Banca Centrale Europea?","In which city is the European Central Bank based?"],o:[["Francoforte","Frankfurt"],["Bruxelles","Brussels"],["Strasburgo","Strasbourg"],["L'Aia","The Hague"]],a:0},
+  {q:["Come si chiama la moneta unica europea?","What is the single European currency called?"],o:[["Euro","Euro"],["Fiorino","Florin"],["Scellino","Shilling"],["Marco","Mark"]],a:0},
+  {q:["In che anno l'euro è entrato in circolazione come contante?","In what year did the euro enter circulation as cash?"],o:[["2002","2002"],["1999","1999"],["1995","1995"],["2010","2010"]],a:0},
+  {q:["Quanti Stati fanno parte oggi dell'Unione Europea?","How many states are part of the European Union today?"],o:[["27","27"],["25","25"],["30","30"],["28","28"]],a:0},
+  {q:["Cos'è l'area Schengen?","What is the Schengen area?"],o:[["Una zona di libera circolazione","A free movement zone"],["Una moneta","A currency"],["Un'alleanza militare","A military alliance"],["Un fiume","A river"]],a:0},
+  {q:["Vero o Falso: l'inno europeo è l'\"Inno alla gioia\" di Beethoven.","True or False: the European anthem is Beethoven's \"Ode to Joy\"."],o:[["Vero","True"],["Falso","False"]],a:0},
+  {q:["Vero o Falso: il Regno Unito fa ancora parte dell'UE.","True or False: the United Kingdom is still part of the EU."],o:[["Falso","False"],["Vero","True"]],a:0},
+  {q:["Quale trattato (1992) ha istituito l'Unione Europea?","Which treaty (1992) established the European Union?"],o:[["Maastricht","Maastricht"],["Roma","Rome"],["Lisbona","Lisbon"],["Schengen","Schengen"]],a:0},
+  {q:["Quando si celebra la Festa dell'Europa?","When is Europe Day celebrated?"],o:[["9 maggio","9 May"],["1 gennaio","1 January"],["25 marzo","25 March"],["14 luglio","14 July"]],a:0},
+  {q:["Quante lingue ufficiali ha circa l'Unione Europea?","About how many official languages does the EU have?"],o:[["24","24"],["5","5"],["12","12"],["40","40"]],a:0},
+];
+// Imprevisti — txt:{it,en}
+const IMPREVISTI = [
+  {txt:{it:"⛴️ Sciopero dei traghetti nel Mediterraneo: i porti sono chiusi! Salti il prossimo turno.",en:"⛴️ Ferry strike in the Mediterranean: the ports are closed! You miss your next turn."}, eff:p=>{p.skip=true;}},
+  {txt:{it:"🛣️ Autostrada libera e fondi europei per le strade! Avanzi di 2 caselle extra.",en:"🛣️ Clear motorway and EU road funds! You move 2 extra squares."}, eff:p=>{muoviSemplice(p,2);}},
+  {txt:{it:"🛃 Controllo doganale a sorpresa: perdi una merce dal camion.",en:"🛃 Surprise customs check: you lose one good from your truck."}, eff:p=>{if(p.inv.length){const g=p.inv.shift();log(()=>tr(`${p.nome} perde ${MERCI[g]} ${merce(g)}.`,`${p.nome} loses ${MERCI[g]} ${merce(g)}.`));}}},
+  {txt:{it:"💶 Fondi europei in arrivo: ricevi un Jolly!",en:"💶 EU funds incoming: you get a Joker!"}, eff:p=>{p.jolly++;}},
+  {txt:{it:"🎉 Festa europea in piazza: +5 punti Cultura!",en:"🎉 European festival in the square: +5 Culture points!"}, eff:p=>{p.cultura+=5;}},
+  {txt:{it:"🌫️ Nebbia fitta in pianura: torni indietro di 3 caselle.",en:"🌫️ Thick fog on the plain: you go back 3 squares."}, eff:p=>{p.pos=(p.pos-3+N)%N;}},
+];
+
+const COLORI = ["#C0392B","#2980B9","#27AE60","#E67E22","#8E44AD","#16A085"];
+const CITTA_ID = ["Roma","Parigi","Berlino","Madrid","Bruxelles","Vienna"];
+
+/* ---- Testi delle regole (condivisi da schermata iniziale e finestra Regole) ---- */
+function regoleIntroHTML(){
+  return tr(
+    `<b>Siamo Tutti Europei</b> è un viaggio-gioco tra le nazioni d'Europa: trasporti le merci, superi le frontiere a colpi di cultura e completi <b>3 contratti</b> per vincere.`,
+    `<b>Siamo Tutti Europei</b> (We Are All Europeans) is a journey-game across the nations of Europe: carry goods, cross borders with culture and complete <b>3 contracts</b> to win.`);
+}
+function regoleListHTML(){
+  return tr(
+    `<li><b>Scopo:</b> completare <b>3 contratti</b> portando la merce richiesta alla nazione di destinazione.</li>
+     <li><b>🎲 Tira il dado</b> per muovere il camioncino lungo le strade d'Europa.</li>
+     <li><b>⏱ Cronometro:</b> hai <b>30 secondi</b> per rispondere a ogni domanda.</li>
+     <li><b>🛂 Frontiere (caselle oro):</b> ci si ferma e si tira il <b>Dado Doganale</b> → 1-4 = domanda di cultura (se sbagli salti il turno), 5 = Schengen (passi e raddoppi il movimento), 6 = Jolly (passi e ottieni un Jolly).</li>
+     <li><b>📦 Caselle verdi (città):</b> qui puoi <b>prelevare le merci</b> prodotte dalla nazione.</li>
+     <li><b>🔵 Caselle blu</b> (Milano, Bruxelles): bonus Integrazione + una merce gratis; se c'è un altro giocatore potete <b>scambiarvi le merci</b>.</li>
+     <li><b>⭐ Caselle Arena (rosse) o un "6" col dado:</b> scatta <b>Il Momento</b>: quiz per <b>tutti i giocatori</b>! +5 Cultura a chi indovina; il primo che indovina vince un Jolly.</li>
+     <li><b>🃏 Jolly:</b> puoi usarlo per <b>passare la dogana</b> senza rispondere, <b>cambiare la domanda</b>, o <b>rubare una merce</b> a un avversario.</li>
+     <li><b>🏆 Vince</b> chi, completati 3 contratti, ha il punteggio totale più alto (Integrazione + Cultura); a parità, chi ha più contratti.</li>`,
+    `<li><b>Goal:</b> complete <b>3 contracts</b> by delivering the requested good to the destination country.</li>
+     <li><b>🎲 Roll the dice</b> to move your little truck along Europe's roads.</li>
+     <li><b>⏱ Timer:</b> you have <b>30 seconds</b> to answer each question.</li>
+     <li><b>🛂 Borders (gold squares):</b> you stop and roll the <b>Customs Die</b> → 1-4 = culture question (if wrong you miss a turn), 5 = Schengen (pass and double your remaining move), 6 = Joker (pass and get a Joker).</li>
+     <li><b>📦 Green squares (cities):</b> here you can <b>pick up the goods</b> produced by the nation.</li>
+     <li><b>🔵 Blue squares</b> (Milan, Brussels): Integration bonus + one free good; if another player is there you can <b>exchange goods</b>.</li>
+     <li><b>⭐ Arena squares (red) or rolling a "6":</b> <b>The Moment</b> begins: a quiz for <b>all players</b>! +5 Culture for each correct answer; the first to answer correctly wins a Joker.</li>
+     <li><b>🃏 Joker:</b> use it to <b>pass customs</b> without answering, <b>change the question</b>, or <b>steal a good</b> from an opponent.</li>
+     <li><b>🏆 The winner</b> is whoever, after completing 3 contracts, has the highest total score (Integration + Culture); ties go to whoever has more contracts.</li>`);
+}
+
+/* ---- Applica la lingua a tutti i testi fissi dell'interfaccia ---- */
+function setText(id,html){ const e=document.getElementById(id); if(e) e.innerHTML=html; }
+function applyLang(){
+  document.documentElement.lang = lang;
+  document.querySelectorAll('.btnLang').forEach(b=> b.textContent = lang==='it' ? '🌐 English' : '🌐 Italiano');
+  // schermata iniziale
+  setText('introTxt', regoleIntroHTML());
+  setText('hNum', tr("Quanti giocatori? (da 1 a 6)","How many players? (1 to 6)"));
+  setText('hNomi', tr("Nomi dei giocatori","Player names"));
+  setText('btnStart', tr("▶ Inizia la partita","▶ Start the game"));
+  setText('lblSuoni', tr("🔊 Suoni","🔊 Sounds"));
+  setText('sumRegole', tr("📖 Come si gioca (regole)","📖 How to play (rules)"));
+  setText('ulRegole', regoleListHTML());
+  // gioco
+  setText('btnRegole', tr("📖 Regole","📖 Rules"));
+  setText('btnNuova', tr("↺ Nuova partita","↺ New game"));
+  setText('btnDado', tr("🎲 Tira il dado","🎲 Roll the dice"));
+  setText('hClass', tr("🏆 Classifica","🏆 Leaderboard"));
+  setText('hDiario', tr("📜 Diario di gioco","📜 Game log"));
+  if(document.getElementById('righeNomi')) refreshNomi();
+  if(!players.length) setText('turnoBanner', tr("Tocca a…","Player's turn…"));
+}
+function bannerTurno(){
+  const b=document.getElementById("turnoBanner"); if(!b||!players.length) return;
+  const p=cur(); b.style.borderColor=p.col;
+  b.innerHTML=tr(`🚚 Tocca a <span style="color:${p.col}">${p.nome}</span>`,
+                 `🚚 <span style="color:${p.col}">${p.nome}</span>'s turn`);
+}
+function setLang(l){
+  lang=l; applyLang(); renderLog();
+  if(players.length){ renderGiocatore(); renderScore(); disegnaMappa(); bannerTurno(); }
+}
+function toggleLang(){ setLang(lang==='it'?'en':'it'); }
+
+/* ============================================================
+   STATO
+   ============================================================ */
+let nGiocatori = 2;
+let players = [];
+let turno = 0;            // indice giocatore corrente
+let ctx = {};            // contesto del turno in corso
+let audio = true;
+let bloccaDado = false;
+
+/* ============================================================
+   SETUP
+   ============================================================ */
+function initSetup(){
+  const nd = document.getElementById("numGiocatori");
+  nd.innerHTML="";
+  for(let i=1;i<=6;i++){
+    const b=document.createElement("button");
+    b.textContent=i; b.onclick=()=>{nGiocatori=i;refreshNomi();renderNum();};
+    nd.appendChild(b);
+  }
+  renderNum(); refreshNomi(); applyLang();
+}
+function renderNum(){
+  [...document.getElementById("numGiocatori").children].forEach((b,i)=>{
+    b.classList.toggle("sel", i+1===nGiocatori);
+  });
+}
+function refreshNomi(){
+  const c=document.getElementById("righeNomi"); c.innerHTML="";
+  for(let i=0;i<nGiocatori;i++){
+    const row=document.createElement("div"); row.className="riga-nome";
+    row.innerHTML=`<span class="pallino" style="background:${COLORI[i]}"></span>
+      <input id="nome${i}" maxlength="14" placeholder="${tr('Giocatore','Player')} ${i+1}" value="${CITTA_ID[i]}">`;
+    c.appendChild(row);
+  }
+}
+
+function avviaPartita(){
+  audio = document.getElementById("audioOn").checked;
+  players=[];
+  for(let i=0;i<nGiocatori;i++){
+    const nome=(document.getElementById("nome"+i).value.trim())||(tr("Giocatore","Player")+" "+(i+1));
+    players.push({
+      nome, col:COLORI[i], pos:0, inv:[],
+      contratto:nuovoContratto(), fatti:0,
+      integrazione:0, cultura:0, jolly:0, skip:false
+    });
+  }
+  document.getElementById("setup").style.display="none";
+  document.getElementById("gioco").style.display="block";
+  disegnaMappa();
+  turno=0;
+  aggiornaAudioBtn();
+  log(()=>tr("🎺 La partita ha inizio! Buon viaggio in Europa.","🎺 The game begins! Have a good trip across Europe."));
+  jingle();
+  iniziaTurno();
+}
+
+function nuovaPartita(){
+  if(confirm(tr("Vuoi iniziare una nuova partita?","Start a new game?"))) location.reload();
+}
+
+function nuovoContratto(){
+  const merci=Object.keys(MERCI);
+  const good=merci[Math.floor(Math.random()*merci.length)];
+  const dest=NAZIONI[Math.floor(Math.random()*NAZIONI.length)];
+  return {good,dest};
+}
+
+/* ============================================================
+   DISEGNO MAPPA
+   ============================================================ */
+function disegnaMappa(){
+  const svg=document.getElementById("board");
+  let s="";
+  // sfondo: mappa reale dell'Europa
+  s+=`<image href="Mappa-hd.png" x="0" y="0" width="1396" height="1080" preserveAspectRatio="xMidYMid meet"/>`;
+  // strada (percorso) come polilinea chiusa
+  let pts=CELLE.map(c=>c.x+","+c.y).join(" ");
+  s+=`<polyline points="${pts} ${CELLE[0].x},${CELLE[0].y}" fill="none" stroke="#3a2207" stroke-width="9" stroke-linejoin="round" stroke-dasharray="3 18" stroke-linecap="round" opacity=".85"/>`;
+  // celle
+  CELLE.forEach((c,i)=>{
+    let col="#ffffff", r=16, stroke="#003399";
+    if(c.t==="frontier"){col="#FFCC00";stroke="#b58a00";}
+    else if(c.t==="blue"){col="#2E77D0";stroke="#13407a";r=19;}
+    else if(c.t==="arena"){col="#C0392B";stroke="#7d1f15";r=19;}
+    else if(c.t==="pickup"){col="#1f8a3b";stroke="#0f5a23";r=18;}
+    else if(c.t==="start"){col="#1f8a3b";stroke="#0f5a23";}
+    // zona affollata (Europa centrale): caselle più piccole per fare aria
+    if(c.small) r = (c.t==="frontier") ? 12 : 14;
+    s+=`<g><circle cx="${c.x}" cy="${c.y}" r="${r}" fill="${col}" stroke="${stroke}" stroke-width="3"/>`;
+    // icona tipo
+    let ico="";
+    if(c.t==="frontier")ico="🛂"; else if(c.t==="blue")ico="🔵"; else if(c.t==="arena")ico="⭐"; else if(c.t==="pickup")ico="📦";
+    if(ico) s+=`<text x="${c.x}" y="${c.y+(c.small?4:5)}" text-anchor="middle" font-size="${c.small?12:16}">${ico}</text>`;
+    // etichetta città — posizione personalizzabile con c.lab={dx,dy,a} per le zone affollate
+    if(c.city && c.t!=="frontier"){
+      const L=c.lab||{};
+      const lx=c.x+(L.dx||0);
+      const ly=(L.dy!==undefined)?(c.y+L.dy):(c.y-r-5);
+      s+=`<text x="${lx}" y="${ly}" text-anchor="${L.a||"middle"}" font-size="${c.small?13:14}" font-weight="800" fill="#111" stroke="#fff" stroke-width="3" paint-order="stroke">${citta(c.city)}</text>`;
+    }
+    s+=`</g>`;
+  });
+  // pedine (camioncini) — disegna prima gli altri, poi il giocatore di turno (così sta sopra)
+  const ordine=[...players.keys()].sort((a,b)=>(a===turno?1:0)-(b===turno?1:0));
+  ordine.forEach((pi)=>{
+    const p=players[pi];
+    const c=CELLE[p.pos];
+    const samecell=players.filter(q=>q.pos===p.pos);
+    const idx=samecell.indexOf(p);
+    // griglia compatta: max 3 camion per fila, così la partenza resta leggibile
+    const row=Math.floor(idx/3), col=idx%3;
+    const inRow=Math.min(3, samecell.length-row*3);
+    const off=(col-(inRow-1)/2)*26;
+    const x=c.x+off, y=c.y+36+row*25;
+    const attivo=(pi===turno);
+    s+=`<g>`;
+    if(attivo){
+      // alone pulsante attorno al camion di turno
+      s+=`<circle cx="${x}" cy="${y}" r="21" fill="none" stroke="${p.col}" stroke-width="5" opacity=".95">
+            <animate attributeName="r" values="19;34;19" dur="1.3s" repeatCount="indefinite"/>
+            <animate attributeName="opacity" values=".95;0;.95" dur="1.3s" repeatCount="indefinite"/>
+          </circle>`;
+    }
+    const r=attivo?22:13;
+    s+=`<circle cx="${x}" cy="${y}" r="${r}" fill="${p.col}" stroke="#fff" stroke-width="${attivo?4:2.5}"/>`;
+    s+=`<text x="${x}" y="${y+(attivo?7:5)}" text-anchor="middle" font-size="${attivo?26:15}">🚚</text>`;
+    if(attivo){
+      // freccia "SEI QUI" che rimbalza sopra il camion
+      s+=`<g><polygon points="${x-14},${y-38} ${x+14},${y-38} ${x},${y-18}" fill="${p.col}" stroke="#fff" stroke-width="2.5">
+            <animateTransform attributeName="transform" type="translate" values="0 0;0 -8;0 0" dur="0.85s" repeatCount="indefinite"/>
+          </polygon></g>`;
+      // etichetta col nome SOLO per il giocatore di turno (gli altri nomi sono in classifica)
+      const lbl=p.nome;
+      const w=Math.max(46,lbl.length*10+16);
+      const ly=y+26;
+      s+=`<rect x="${x-w/2}" y="${ly}" width="${w}" height="24" rx="10" fill="#fff" stroke="${p.col}" stroke-width="2.5"/>`;
+      s+=`<text x="${x}" y="${ly+17}" text-anchor="middle" class="truck-label" fill="${p.col}" font-weight="800" font-size="15">${lbl}</text>`;
+    }
+    s+=`</g>`;
+  });
+  svg.innerHTML=s;
+}
+
+/* ============================================================
+   TURNI
+   ============================================================ */
+function cur(){return players[turno];}
+
+function iniziaTurno(){
+  ctx={};
+  const p=cur();
+  document.getElementById("dadoView").textContent="–";
+  document.getElementById("actions").innerHTML="";
+  bannerTurno();
+  renderGiocatore(); renderScore(); disegnaMappa();
+
+  if(p.skip){
+    p.skip=false;
+    log(()=>tr(`⏭️ ${p.nome} salta il turno.`,`⏭️ ${p.nome} misses a turn.`));
+    document.getElementById("btnDado").disabled=true;
+    setTimeout(prossimoTurno,1100);
+    return;
+  }
+  bloccaDado=false;
+  document.getElementById("btnDado").disabled=false;
+}
+
+function prossimoTurno(){
+  turno=(turno+1)%players.length;
+  iniziaTurno();
+}
+
+function tiraDado(){
+  if(bloccaDado)return;
+  bloccaDado=true;
+  document.getElementById("btnDado").disabled=true;
+  beep(660,.08);
+  // animazione
+  let n=0,giri=0;
+  const dv=document.getElementById("dadoView");
+  const anim=setInterval(()=>{
+    n=1+Math.floor(Math.random()*6); dv.textContent=n; giri++;
+    if(giri>8){clearInterval(anim); risolviMovimento(n);}
+  },70);
+}
+
+function risolviMovimento(d){
+  const p=cur();
+  ctx.roll=d;
+  log(()=>tr(`🎲 ${p.nome} tira un ${d}.`,`🎲 ${p.nome} rolls a ${d}.`));
+  // cerca prima frontiera nel percorso
+  let frontIdx=-1, passi=0;
+  for(let s=1;s<=d;s++){
+    const idx=(p.pos+s)%N;
+    if(CELLE[idx].t==="frontier"){frontIdx=idx;passi=s;break;}
+  }
+  if(frontIdx>=0){
+    p.pos=frontIdx; disegnaMappa();
+    const resto=d-passi;
+    log(()=>tr(`🛂 ${p.nome} arriva alla frontiera con ${naz(CELLE[frontIdx].n)}.`,`🛂 ${p.nome} reaches the border with ${naz(CELLE[frontIdx].n)}.`));
+    setTimeout(()=>dadoDoganale(resto),700);
+  }else{
+    muoviSemplice(p,d);
+    disegnaMappa();
+    setTimeout(()=>arrivo(),600);
+  }
+}
+
+function muoviSemplice(p,k){ p.pos=(p.pos+k)%N; }
+
+function dadoDoganale(resto){
+  const p=cur();
+  beep(520,.08);
+  const c=1+Math.floor(Math.random()*6);
+  log(()=>tr(`🛃 Dado Doganale: ${c}.`,`🛃 Customs Die: ${c}.`));
+  if(c<=4){
+    domandaDogana(resto);
+  }else if(c===5){
+    log(()=>tr(`🟦 Schengen! ${p.nome} passa libero e RADDOPPIA il movimento residuo.`,`🟦 Schengen! ${p.nome} passes free and DOUBLES the remaining move.`));
+    continuaDopoFrontiera(resto,2);
+  }else{
+    p.jolly++;
+    log(()=>tr(`🃏 Jolly! ${p.nome} passa libero e ottiene un Jolly.`,`🃏 Joker! ${p.nome} passes free and gets a Joker.`));
+    continuaDopoFrontiera(resto,1);
+  }
+}
+
+// Mostra la domanda di dogana (estratta per poter "cambiare domanda" col Jolly)
+function domandaDogana(resto,evitaQ){
+  const p=cur();
+  const nazi=CELLE[p.pos].n;
+  let qRaw=pickDomandaNazione(nazi);
+  // se si è usato un Jolly per cambiare domanda, evita di ripresentare la stessa
+  for(let i=0;i<8 && evitaQ && qRaw.q[0]===evitaQ;i++) qRaw=pickDomandaNazione(nazi);
+  ctx.qCorrente=qRaw.q[0];
+  const q=locQ(qRaw);
+  let extra="";
+  if(p.jolly>0){
+    extra=`<div class="opzioni" style="margin-top:8px;">
+      <button class="oro" onclick="usaJollyDogana(${resto})">${tr("🃏 Usa Jolly: passa senza domanda","🃏 Use Joker: pass without question")}</button>
+      <button class="oro" onclick="cambiaDomandaDogana(${resto})">${tr("🃏 Usa Jolly: cambia domanda","🃏 Use Joker: change question")}</button>
+    </div>`;
+  }
+  mostraDomanda(tr(`🛂 Dogana — ${naz(nazi)}`,`🛂 Customs — ${naz(nazi)}`), q, (ok)=>{
+    if(ok){ p.cultura+=5; log(()=>tr(`✅ Risposta esatta! ${p.nome} passa la frontiera (+5 Cultura).`,`✅ Correct! ${p.nome} crosses the border (+5 Culture).`)); continuaDopoFrontiera(resto,1); }
+    else { log(()=>tr(`❌ Risposta errata: ${p.nome} resta fermo e salta il prossimo turno.`,`❌ Wrong: ${p.nome} stays put and misses the next turn.`)); p.skip=true; chiudiModaleEArrivo(); }
+  }, extra);
+}
+
+function usaJollyDogana(resto){
+  const p=cur(); p.jolly--;
+  log(()=>tr(`🃏 ${p.nome} usa un Jolly e supera la dogana senza rispondere.`,`🃏 ${p.nome} uses a Joker and passes customs without answering.`));
+  chiudiModale();
+  continuaDopoFrontiera(resto,1);
+}
+
+function cambiaDomandaDogana(resto){
+  const p=cur(); p.jolly--;
+  log(()=>tr(`🃏 ${p.nome} usa un Jolly per cambiare la domanda.`,`🃏 ${p.nome} uses a Joker to change the question.`));
+  domandaDogana(resto, ctx.qCorrente);
+}
+
+function continuaDopoFrontiera(resto,molt){
+  chiudiModale();
+  const p=cur();
+  const passi=resto*molt;
+  if(passi>0){ muoviSemplice(p,passi); }
+  disegnaMappa();
+  setTimeout(()=>arrivo(),500);
+}
+
+function chiudiModaleEArrivo(){ chiudiModale(); disegnaMappa(); setTimeout(()=>arrivo(),300); }
+
+/* ---- ARRIVO sulla casella finale ---- */
+function arrivo(){
+  const p=cur();
+  const c=CELLE[p.pos];
+  // Il Momento: 6 col dado oppure casella Arena
+  if(ctx.roll===6 || c.t==="arena"){
+    log(()=>tr(`⭐ IL MOMENTO! (${p.nome}: ${c.t==="arena"?"sei sull'Arena":"hai fatto 6"}) Quiz per tutti i giocatori!`,`⭐ THE MOMENT! (${p.nome}: ${c.t==="arena"?"you are on the Arena":"you rolled a 6"}) Quiz for all players!`));
+    ilMomento(()=>pannelloAzioni());
+  }else{
+    pannelloAzioni();
+  }
+}
+
+/* ---- IL MOMENTO: quiz collettivo, tutti rispondono a turno ---- */
+function ilMomento(fine){
+  const ordine=players.map((_,i)=>(turno+i)%players.length);
+  let vincitore=null, k=0;
+  function next(){
+    if(k>=ordine.length){
+      if(vincitore!==null){
+        players[vincitore].jolly++;
+        log(()=>tr(`🏅 ${players[vincitore].nome} vince Il Momento e ottiene un Jolly!`,`🏅 ${players[vincitore].nome} wins The Moment and gets a Joker!`));
+      }else{
+        log(()=>tr("😕 Nessuno indovina Il Momento: niente Jolly.","😕 Nobody guesses The Moment: no Joker."));
+      }
+      chiudiModale(); renderGiocatore(); renderScore(); fine(); return;
+    }
+    const pi=ordine[k], pl=players[pi];
+    const q=locQ(DOM_GENERALI[Math.floor(Math.random()*DOM_GENERALI.length)]);
+    mostraDomanda(tr(`⭐ IL MOMENTO — Risponde: ${pl.nome}`,`⭐ THE MOMENT — Answering: ${pl.nome}`), q, (ok)=>{
+      if(ok){
+        pl.cultura+=5;
+        if(vincitore===null) vincitore=pi;
+        log(()=>tr(`✅ ${pl.nome} indovina! +5 Cultura.`,`✅ ${pl.nome} guesses right! +5 Culture.`));
+      }else{
+        log(()=>tr(`❌ ${pl.nome} non indovina.`,`❌ ${pl.nome} misses.`));
+      }
+      k++; next();
+    });
+  }
+  next();
+}
+
+/* ---- PANNELLO AZIONI sulla casella ---- */
+function pannelloAzioni(){
+  const p=cur();
+  const c=CELLE[p.pos];
+  const div=document.getElementById("actions");
+  let html="";
+
+  // Bonus casella blu (una volta per arrivo)
+  if(c.t==="blue" && !ctx.blueDone){
+    ctx.blueDone=true;
+    p.integrazione+=3;
+    log(()=>tr(`🔵 ${p.nome} è in una Zona di Libero Scambio (${citta(c.city)}): +3 Integrazione.`,`🔵 ${p.nome} is in a Free Trade Zone (${citta(c.city)}): +3 Integration.`));
+  }
+
+  // Prelievo merci
+  if(c.goods){
+    c.goods.forEach(g=>{
+      if(!p.inv.includes(g)){
+        html+=`<button class="verde" onclick="preleva('${g}')">${tr("📦 Preleva","📦 Pick up")} ${MERCI[g]} ${merce(g)}</button>`;
+      }
+    });
+  }
+  // Merce gratis nelle caselle blu
+  if(c.t==="blue" && !ctx.blueGood){
+    html+=`<div style="font-weight:600;margin-top:4px;">${tr("🎁 Scegli una merce gratis:","🎁 Choose a free good:")}</div>`;
+    Object.keys(MERCI).forEach(g=>{
+      if(!p.inv.includes(g)) html+=`<button class="ghost" onclick="preleva('${g}',true)">${MERCI[g]} ${merce(g)}</button>`;
+    });
+  }
+  // Scambio merci nelle Zone di Libero Scambio (se c'è un altro giocatore sulla casella)
+  if(c.t==="blue" && !ctx.scambioDone){
+    players.forEach((o,oi)=>{
+      if(oi!==turno && o.pos===p.pos){
+        const dai=p.inv.filter(g=>!o.inv.includes(g));
+        const prendi=o.inv.filter(g=>!p.inv.includes(g));
+        if(dai.length && prendi.length){
+          html+=`<button class="ghost" onclick="apriScambio(${oi})">${tr(`🔄 Scambia una merce con ${o.nome}`,`🔄 Exchange a good with ${o.nome}`)}</button>`;
+        }
+      }
+    });
+  }
+  // Jolly: ruba una merce a un avversario
+  if(p.jolly>0 && !ctx.rubaDone){
+    const rubabili=players.some((o,oi)=>oi!==turno && o.inv.some(g=>!p.inv.includes(g)));
+    if(rubabili) html+=`<button class="ghost" onclick="apriRuba()">${tr("🃏 Usa Jolly: ruba una merce","🃏 Use Joker: steal a good")}</button>`;
+  }
+  // Consegna contratto
+  if(p.contratto && c.n===p.contratto.dest && p.inv.includes(p.contratto.good)){
+    html+=`<button class="oro" onclick="consegna()" style="font-size:1.1rem;">${tr(`✅ CONSEGNA il contratto a ${naz(c.n)}!`,`✅ DELIVER the contract to ${naz(c.n)}!`)}</button>`;
+  }
+
+  html+=`<button class="rosso" onclick="terminaTurno()" style="margin-top:6px;">${tr("➡️ Termina il turno","➡️ End turn")}</button>`;
+  div.innerHTML=html;
+  renderGiocatore(); renderScore();
+}
+
+/* ---- Scambio merci (caselle blu, con un altro giocatore presente) ---- */
+function apriScambio(oi){
+  const p=cur(), o=players[oi];
+  const m=document.getElementById("modal");
+  let html=`<h2>${tr("🔄 Scambio merci","🔄 Goods exchange")}</h2>
+    <p style="font-size:1.15rem;">${tr(`Quale merce dai a <b>${o.nome}</b>?`,`Which good do you give to <b>${o.nome}</b>?`)}</p><div class="opzioni">`;
+  p.inv.filter(g=>!o.inv.includes(g)).forEach(g=>{
+    html+=`<button onclick="scambioDai(${oi},'${g}')">${MERCI[g]} ${merce(g)}</button>`;
+  });
+  html+=`</div><div class="opzioni"><button class="rosso" onclick="chiudiModale()">${tr("Annulla","Cancel")}</button></div>`;
+  m.innerHTML=html; document.getElementById("overlay").style.display="flex";
+}
+function scambioDai(oi,gDai){
+  const p=cur(), o=players[oi];
+  const m=document.getElementById("modal");
+  let html=`<h2>${tr("🔄 Scambio merci","🔄 Goods exchange")}</h2>
+    <p style="font-size:1.15rem;">${tr(`Dai ${MERCI[gDai]} ${merce(gDai)}. Quale merce prendi da <b>${o.nome}</b>?`,`You give ${MERCI[gDai]} ${merce(gDai)}. Which good do you take from <b>${o.nome}</b>?`)}</p><div class="opzioni">`;
+  o.inv.filter(g=>!p.inv.includes(g)).forEach(g=>{
+    html+=`<button onclick="scambioRicevi(${oi},'${gDai}','${g}')">${MERCI[g]} ${merce(g)}</button>`;
+  });
+  html+=`</div><div class="opzioni"><button class="rosso" onclick="chiudiModale()">${tr("Annulla","Cancel")}</button></div>`;
+  m.innerHTML=html; document.getElementById("overlay").style.display="flex";
+}
+function scambioRicevi(oi,gDai,gRic){
+  const p=cur(), o=players[oi];
+  p.inv.splice(p.inv.indexOf(gDai),1); o.inv.push(gDai);
+  o.inv.splice(o.inv.indexOf(gRic),1); p.inv.push(gRic);
+  ctx.scambioDone=true;
+  log(()=>tr(`🔄 ${p.nome} scambia ${MERCI[gDai]} ${merce(gDai)} con ${MERCI[gRic]} ${merce(gRic)} di ${o.nome}.`,`🔄 ${p.nome} trades ${MERCI[gDai]} ${merce(gDai)} for ${o.nome}'s ${MERCI[gRic]} ${merce(gRic)}.`));
+  beep(720,.08); setTimeout(()=>beep(900,.08),90);
+  chiudiModale(); pannelloAzioni();
+}
+
+/* ---- Jolly: ruba una merce a un avversario ---- */
+function apriRuba(){
+  const p=cur();
+  const m=document.getElementById("modal");
+  let html=`<h2>${tr("🃏 Ruba una merce","🃏 Steal a good")}</h2>
+    <p style="font-size:1.15rem;">${tr("Scegli la merce da rubare (costa 1 Jolly):","Choose the good to steal (costs 1 Joker):")}</p><div class="opzioni">`;
+  players.forEach((o,oi)=>{
+    if(oi!==turno) o.inv.filter(g=>!p.inv.includes(g)).forEach(g=>{
+      html+=`<button onclick="rubaMerce(${oi},'${g}')">${MERCI[g]} ${merce(g)} — ${o.nome}</button>`;
+    });
+  });
+  html+=`</div><div class="opzioni"><button class="rosso" onclick="chiudiModale()">${tr("Annulla","Cancel")}</button></div>`;
+  m.innerHTML=html; document.getElementById("overlay").style.display="flex";
+}
+function rubaMerce(oi,g){
+  const p=cur(), o=players[oi];
+  p.jolly--;
+  o.inv.splice(o.inv.indexOf(g),1); p.inv.push(g);
+  ctx.rubaDone=true;
+  log(()=>tr(`🃏 ${p.nome} usa un Jolly e ruba ${MERCI[g]} ${merce(g)} a ${o.nome}!`,`🃏 ${p.nome} uses a Joker and steals ${MERCI[g]} ${merce(g)} from ${o.nome}!`));
+  beep(300,.15); setTimeout(()=>beep(600,.12),150);
+  chiudiModale(); pannelloAzioni();
+}
+
+function preleva(g,gratis){
+  const p=cur();
+  if(!p.inv.includes(g)) p.inv.push(g);
+  log(()=>tr(`📦 ${p.nome} carica ${MERCI[g]} ${merce(g)}${gratis?" (gratis)":""}.`,`📦 ${p.nome} loads ${MERCI[g]} ${merce(g)}${gratis?" (free)":""}.`));
+  beep(720,.06);
+  if(gratis) ctx.blueGood=true;
+  pannelloAzioni();
+}
+
+function consegna(){
+  const p=cur();
+  const g=p.contratto.good;
+  p.inv.splice(p.inv.indexOf(g),1);
+  p.integrazione+=10; p.fatti++;
+  log(()=>tr(`🎉 ${p.nome} consegna ${MERCI[g]} ${merce(g)} a ${naz(p.contratto.dest)}! Contratto ${p.fatti}/3 completato (+10 Integrazione).`,`🎉 ${p.nome} delivers ${MERCI[g]} ${merce(g)} to ${naz(p.contratto.dest)}! Contract ${p.fatti}/3 completed (+10 Integration).`));
+  beep(880,.12); setTimeout(()=>beep(1100,.12),120);
+  if(p.fatti>=3){
+    pannelloAzioni();
+    setTimeout(finePartita,400);
+    return;
+  }
+  p.contratto=nuovoContratto();
+  log(()=>tr(`📝 Nuovo contratto per ${p.nome}.`,`📝 New contract for ${p.nome}.`));
+  pannelloAzioni();
+}
+
+function terminaTurno(){
+  document.getElementById("actions").innerHTML="";
+  const p=cur();
+  // Imprevisto casuale (non dopo l'Arena per non appesantire)
+  if(Math.random()<0.18){
+    const imp=IMPREVISTI[Math.floor(Math.random()*IMPREVISTI.length)];
+    mostraImprevisto(imp);
+    return;
+  }
+  finalizzaTurno();
+}
+
+function finalizzaTurno(){
+  // controllo vittoria
+  if(players.some(p=>p.fatti>=3)){ finePartita(); return; }
+  disegnaMappa();
+  prossimoTurno();
+}
+
+/* ============================================================
+   FINE PARTITA
+   ============================================================ */
+function finePartita(){
+  // punteggio: Integrazione (contratti) + Cultura; a parità vince chi ha più contratti
+  const cls=[...players].sort((a,b)=>(b.integrazione+b.cultura)-(a.integrazione+a.cultura) || b.fatti-a.fatti);
+  const w=cls[0];
+  jingle();
+  let html=`<h2>${tr("🏆 Partita finita!","🏆 Game over!")}</h2>
+    <p style="font-size:1.2rem;">${tr(`Vince <b style="color:${w.col}">${w.nome}</b> con <b>${w.integrazione+w.cultura}</b> punti totali!`,`<b style="color:${w.col}">${w.nome}</b> wins with <b>${w.integrazione+w.cultura}</b> total points!`)}</p>
+    <table style="width:100%;border-collapse:collapse;font-size:1.05rem;">
+    <tr style="border-bottom:2px solid #003399;"><th align="left">${tr("Giocatore","Player")}</th><th>${tr("Contratti","Contracts")}</th><th>${tr("Integr.","Integr.")}</th><th>${tr("Cultura","Culture")}</th><th>${tr("Totale","Total")}</th></tr>`;
+  cls.forEach((p,i)=>{
+    html+=`<tr style="border-bottom:1px solid #ddd;">
+      <td><span style="color:${p.col};font-weight:700;">${i===0?"🥇 ":i===1?"🥈 ":i===2?"🥉 ":""}${p.nome}</span></td>
+      <td align="center">${p.fatti}/3</td>
+      <td align="center">${p.integrazione}</td>
+      <td align="center">${p.cultura}</td>
+      <td align="center"><b>${p.integrazione+p.cultura}</b></td></tr>`;
+  });
+  html+=`</table>
+    <div class="opzioni"><button class="oro" onclick="location.reload()">${tr("↺ Gioca ancora","↺ Play again")}</button></div>`;
+  document.getElementById("overlay").style.display="flex";
+  document.getElementById("modal").innerHTML=html;
+}
+
+/* ============================================================
+   MODALI
+   ============================================================ */
+let qTimer=null;
+function mostraDomanda(titolo,q,cb,extraHtml){
+  clearInterval(qTimer);
+  const SECS=30; // cronometro della prova (come da regolamento)
+  const ov=document.getElementById("overlay");
+  const m=document.getElementById("modal");
+  let html=`<h2>${titolo}</h2><p style="font-size:1.2rem;font-weight:600;">${q.q}</p><div class="opzioni">`;
+  q.o.forEach((op,i)=>{ html+=`<button data-i="${i}">${op}</button>`; });
+  html+=`</div>${extraHtml||""}
+    <div class="tmr"><span>⏱</span><div class="barra"><div id="tmrBar"></div></div><span class="sec" id="tmrSec">${SECS}s</span></div>
+    <div class="feedback" id="fb"></div>`;
+  m.innerHTML=html; ov.style.display="flex";
+  function chiudi(ok, daTimeout){
+    clearInterval(qTimer);
+    m.querySelectorAll(".opzioni button").forEach(x=>x.disabled=true);
+    if(!ok) m.querySelectorAll(".opzioni button[data-i]")[q.a].classList.add("giusta");
+    document.getElementById("fb").textContent = ok ? tr("✅ Esatto!","✅ Correct!")
+      : daTimeout ? tr("⏱ Tempo scaduto! La risposta giusta è evidenziata.","⏱ Time's up! The correct answer is highlighted.")
+      : tr("❌ Sbagliato. La risposta giusta è evidenziata.","❌ Wrong. The correct answer is highlighted.");
+    if(ok){beep(880,.1);setTimeout(()=>beep(1100,.1),110);} else beep(180,.25);
+    setTimeout(()=>cb(ok), ok?700:1500);
+  }
+  let t=SECS;
+  qTimer=setInterval(()=>{
+    t--;
+    const bar=document.getElementById("tmrBar"), sec=document.getElementById("tmrSec");
+    if(!bar){ clearInterval(qTimer); return; }
+    bar.style.width=(t/SECS*100)+"%";
+    if(t<=10) bar.style.background="var(--rosso)";
+    sec.textContent=t+"s";
+    if(t===10) beep(440,.1);
+    if(t<=0) chiudi(false,true);
+  },1000);
+  m.querySelectorAll(".opzioni button[data-i]").forEach(b=>{
+    b.onclick=()=>{
+      const ok=(+b.dataset.i===q.a);
+      b.classList.add(ok?"giusta":"sbagliata");
+      chiudi(ok,false);
+    };
+  });
+}
+
+function mostraImprevisto(imp){
+  const p=cur();
+  const m=document.getElementById("modal");
+  document.getElementById("overlay").style.display="flex";
+  const txt=imp.txt[lang];
+  const emo=txt.split(" ")[0]; // emoji iniziale del messaggio
+  m.innerHTML=`<h2>${tr("⚡ IMPREVISTO!","⚡ EVENT!")}</h2>
+    <div style="font-size:4.5rem;text-align:center;line-height:1.2;animation:pop .5s ease;">${emo}</div>
+    <p style="font-size:1.2rem;text-align:center;">${txt}</p>
+    <div class="opzioni"><button class="oro" id="okImp">${tr("Ho capito","Got it")}</button></div>`;
+  beep(300,.2);
+  log(()=>tr(`⚡ Imprevisto per ${p.nome}: ${imp.txt.it}`,`⚡ Event for ${p.nome}: ${imp.txt.en}`));
+  document.getElementById("okImp").onclick=()=>{
+    imp.eff(p);
+    chiudiModale();
+    finalizzaTurno();
+  };
+}
+
+function chiudiModale(){ clearInterval(qTimer); document.getElementById("overlay").style.display="none"; }
+
+function mostraRegole(){
+  const m=document.getElementById("modal");
+  m.innerHTML=`
+    <h2>${tr("📖 Come si gioca","📖 How to play")}</h2>
+    <p style="font-size:1.1rem;">${regoleIntroHTML()}</p>
+    <ul style="font-size:1.05rem;line-height:1.5;padding-left:1.1em;">${regoleListHTML()}</ul>
+    <div class="opzioni"><button class="oro" onclick="chiudiModale()">${tr("Ho capito ✔","Got it ✔")}</button></div>`;
+  document.getElementById("overlay").style.display="flex";
+}
+
+function pickDomandaNazione(naz){
+  const arr=DOM_NAZIONE[naz]||DOM_GENERALI;
+  return arr[Math.floor(Math.random()*arr.length)];
+}
+
+/* ============================================================
+   RENDER PANNELLI
+   ============================================================ */
+function renderGiocatore(){
+  const p=cur();
+  const div=document.getElementById("cardGiocatore");
+  let inv = p.inv.length ? p.inv.map(g=>`<span class="merce-chip">${MERCI[g]} ${merce(g)}</span>`).join("") : `<i>${tr("vuoto","empty")}</i>`;
+  let needed = p.contratto ? `<span class="merce-chip" style="background:#fff3cd;">${MERCI[p.contratto.good]} ${merce(p.contratto.good)}</span> → <b>${naz(p.contratto.dest)}</b>` : "—";
+  div.innerHTML=`
+    <h3 style="margin-top:0;color:${p.col}">🚚 ${p.nome}</h3>
+    <div class="contratto">📄 <b>${tr("Contratto attivo:","Active contract:")}</b><br>${tr("Porta","Deliver")} ${needed}</div>
+    <div style="margin-top:8px;"><b>${tr("🚛 Carico:","🚛 Cargo:")}</b> ${inv}</div>
+    <div style="margin-top:6px;">${tr("🃏 Jolly:","🃏 Jokers:")} <b>${p.jolly}</b> &nbsp;|&nbsp; ${tr("✅ Contratti:","✅ Contracts:")} <b>${p.fatti}/3</b></div>
+    <div>${tr("⭐ Integrazione:","⭐ Integration:")} <b>${p.integrazione}</b> &nbsp;|&nbsp; ${tr("📚 Cultura:","📚 Culture:")} <b>${p.cultura}</b></div>`;
+}
+
+function renderScore(){
+  const sb=document.getElementById("scoreboard");
+  const cls=[...players].map((p,i)=>({p,i}))
+     .sort((a,b)=>(b.p.integrazione+b.p.cultura)-(a.p.integrazione+a.p.cultura) || b.p.fatti-a.p.fatti);
+  sb.innerHTML=cls.map(({p,i})=>`
+    <div class="scorerow ${i===turno?'attivo':''}">
+      <span class="pallino" style="background:${p.col}"></span>
+      <span style="flex:1;font-weight:600;">${p.nome}</span>
+      <span>✅${p.fatti}/3</span>
+      <span>🏅 ${p.integrazione+p.cultura}</span>
+    </div>`).join("");
+}
+
+let logEntries=[];
+function log(fn){
+  // fn è una funzione che restituisce il testo nella lingua corrente
+  // (così il diario può essere ritradotto cambiando lingua)
+  if(typeof fn!=="function"){ const s=fn; fn=()=>s; }
+  logEntries.push(fn);
+  renderLog();
+}
+function renderLog(){
+  const l=document.getElementById("log"); if(!l) return;
+  l.innerHTML=logEntries.map(fn=>`<p>${fn()}</p>`).join("");
+  l.scrollTop=l.scrollHeight;
+}
+
+/* ============================================================
+   AUDIO
+   ============================================================ */
+let actx=null;
+function beep(freq,dur){
+  if(!audio)return;
+  try{
+    actx=actx||new (window.AudioContext||window.webkitAudioContext)();
+    const o=actx.createOscillator(), g=actx.createGain();
+    o.frequency.value=freq; o.type="sine";
+    o.connect(g); g.connect(actx.destination);
+    g.gain.setValueAtTime(.18,actx.currentTime);
+    g.gain.exponentialRampToValueAtTime(.001,actx.currentTime+dur);
+    o.start(); o.stop(actx.currentTime+dur);
+  }catch(e){}
+}
+// Sigla: "Inno alla Gioia" di Beethoven (inno europeo)
+function jingle(){
+  if(!audio)return;
+  const E=330,F=349,G=392,D=294,C=262;
+  const note=[[E,1],[E,1],[F,1],[G,1],[G,1],[F,1],[E,1],[D,1],[C,1],[C,1],[D,1],[E,1],[E,1.5],[D,.5],[D,2]];
+  let t=0;
+  note.forEach(([f,d])=>{ setTimeout(()=>beep(f,d*.22),t); t+=d*235; });
+}
+function toggleAudio(){ audio=!audio; aggiornaAudioBtn(); if(audio)beep(660,.1); }
+function aggiornaAudioBtn(){ document.getElementById("btnAudio").textContent=audio?"🔊":"🔇"; }
+
+/* ============================================================
+   AVVIO
+   ============================================================ */
+initSetup();
+</script>
+</body>
+</html>
