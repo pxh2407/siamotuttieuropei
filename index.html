@@ -46,6 +46,14 @@
   .mappa-box{flex:1 1 560px;min-width:340px;background:var(--carta);border-radius:16px;padding:10px;box-shadow:0 6px 20px rgba(0,0,0,.1);}
   svg{width:100%;height:auto;display:block;border-radius:12px;background:var(--mare);}
   .pannello{flex:1 1 360px;min-width:320px;display:flex;flex-direction:column;gap:14px;}
+  /* ---- ALTERNANZA AUTOMATICA tabellone/pannello: si vede una sezione alla volta,
+         così il tabellone può usare tutto lo schermo ---- */
+  #gioco.vista-tab .pannello{display:none;}
+  #gioco.vista-tab .mappa-box{flex:1 1 100%;}
+  #gioco.vista-pan .mappa-box{display:none;}
+  #gioco.vista-pan .pannello{flex:1 1 100%;max-width:860px;margin:0 auto;}
+  #boardBar{display:flex;align-items:center;gap:12px;flex-wrap:wrap;font-size:1.1rem;font-weight:700;padding:2px 8px 8px;}
+  #boardBar .bb-chip{background:#fff;border:2px solid var(--blu);border-radius:12px;padding:2px 12px;}
   .card{background:var(--carta);border-radius:14px;padding:14px 16px;box-shadow:0 4px 14px rgba(0,0,0,.08);}
   .turno-banner{font-size:1.3rem;font-weight:700;display:flex;align-items:center;gap:10px;border-left:10px solid #999;padding-left:12px;}
   .dado-area{display:flex;align-items:center;gap:14px;flex-wrap:wrap;}
@@ -92,6 +100,10 @@
   <h1>SIAMO TUTTI EUROPEI</h1>
   <p id="introTxt" style="font-size:1.1rem;"></p>
 
+  <div id="resumeBox" style="display:none;margin:12px 0;">
+    <button id="btnResume" class="verde" style="font-size:1.15rem;" onclick="riprendiPartita()"></button>
+  </div>
+
   <h3 id="hNum"></h3>
   <div class="num-giocatori" id="numGiocatori"></div>
 
@@ -116,6 +128,7 @@
     <div class="stelle">★★★★★★★★★★★★</div>
     <div>
       <button class="ghost btnLang" style="background:transparent;color:#fff;border-color:#fff;" onclick="toggleLang()">🌐 English</button>
+      <button id="btnVista" class="ghost" style="background:transparent;color:#fff;border-color:#fff;" onclick="toggleVista()">🗺 Tabellone</button>
       <button id="btnRegole" class="ghost" style="background:transparent;color:#fff;border-color:#fff;" onclick="mostraRegole()">📖 Regole</button>
       <button class="ghost" style="background:transparent;color:#fff;border-color:#fff;" onclick="toggleAudio()" id="btnAudio">🔊</button>
       <button id="btnNuova" class="ghost" style="background:transparent;color:#fff;border-color:#fff;" onclick="nuovaPartita()">↺ Nuova partita</button>
@@ -124,7 +137,8 @@
 
   <div class="layout">
     <div class="mappa-box">
-      <svg id="board" viewBox="75 350 785 655" aria-label="Mappa d'Europa"></svg>
+      <div id="boardBar"></div>
+      <svg id="board" viewBox="0 0 2020 1110" aria-label="Tabellone di gioco"></svg>
     </div>
 
     <div class="pannello">
@@ -160,9 +174,11 @@
    DATI DI GIOCO
    ============================================================ */
 const MERCI = {
-  Formaggio:"🧀", Auto:"🚗", Orologi:"⌚", Vino:"🍷", Legname:"🪵"
+  Formaggio:"🧀", Auto:"🚗", Orologi:"⌚", Vino:"🍷", Legname:"🪵",
+  Grano:"🌾", Fiori:"🌷", Pesce:"🐟"
 };
-const NAZIONI = ["Italia","Svizzera","Germania","Belgio","Francia","Spagna","Austria"];
+const NAZIONI = ["Italia","Svizzera","Germania","Belgio","Francia","Spagna","Austria",
+                 "Portogallo","Paesi Bassi","Polonia","Lituania","Lettonia","Estonia","Danimarca","Norvegia"];
 
 /* ============================================================
    LINGUA (Italiano / English)
@@ -172,66 +188,99 @@ function tr(it,en){ return lang==='en'?en:it; }          // testo a due lingue
 const _k = ()=> lang==='en'?1:0;
 const NAZ_T = {                                          // nomi nazioni
   Italia:["Italia","Italy"], Svizzera:["Svizzera","Switzerland"], Germania:["Germania","Germany"],
-  Belgio:["Belgio","Belgium"], Francia:["Francia","France"], Spagna:["Spagna","Spain"], Austria:["Austria","Austria"]
+  Belgio:["Belgio","Belgium"], Francia:["Francia","France"], Spagna:["Spagna","Spain"], Austria:["Austria","Austria"],
+  Portogallo:["Portogallo","Portugal"], "Paesi Bassi":["Paesi Bassi","Netherlands"], Polonia:["Polonia","Poland"],
+  Lituania:["Lituania","Lithuania"], Lettonia:["Lettonia","Latvia"], Estonia:["Estonia","Estonia"],
+  Danimarca:["Danimarca","Denmark"], Norvegia:["Norvegia","Norway"]
 };
 const MERCE_T = {                                        // nomi merci
   Formaggio:["Formaggio","Cheese"], Auto:["Auto","Car"], Orologi:["Orologi","Watches"],
-  Vino:["Vino","Wine"], Legname:["Legname","Timber"]
+  Vino:["Vino","Wine"], Legname:["Legname","Timber"],
+  Grano:["Grano","Wheat"], Fiori:["Fiori","Flowers"], Pesce:["Pesce","Fish"]
 };
 const CITY_T = {                                         // nomi città (solo dove differiscono)
   Roma:"Rome", Milano:"Milan", Napoli:"Naples", Venezia:"Venice", Monaco:"Munich",
   Colonia:"Cologne", Bruxelles:"Brussels", Anversa:"Antwerp", Parigi:"Paris", Lione:"Lyon",
   Marsiglia:"Marseille", Barcellona:"Barcelona", Siviglia:"Seville", Ginevra:"Geneva",
-  Berna:"Bern", Zurigo:"Zurich"
+  Berna:"Bern", Zurigo:"Zurich",
+  Lisbona:"Lisbon", Copenaghen:"Copenhagen", Varsavia:"Warsaw", Breslavia:"Wrocław",
+  Danzica:"Gdańsk", Tolosa:"Toulouse", Strasburgo:"Strasbourg", Francoforte:"Frankfurt"
 };
 function naz(n){ return NAZ_T[n]?NAZ_T[n][_k()]:n; }
 function merce(g){ return MERCE_T[g]?MERCE_T[g][_k()]:g; }
 function citta(c){ return (lang==='en'&&CITY_T[c])?CITY_T[c]:c; }
-function locQ(q){ const i=_k(); return {q:q.q[i], o:q.o.map(o=>o[i]), a:q.a}; } // localizza una domanda
+function locQ(q){ // localizza una domanda e mescola l'ordine delle risposte
+  const i=_k();
+  const idx=q.o.map((_,j)=>j);
+  for(let j=idx.length-1;j>0;j--){ const r=Math.floor(Math.random()*(j+1)); [idx[j],idx[r]]=[idx[r],idx[j]]; }
+  return {q:q.q[i], o:idx.map(j=>q.o[j][i]), a:idx.indexOf(q.a)};
+}
 
-// Caselle del percorso: {n=nazione, t=tipo, city, x, y, goods?}
-// tipo: start | normal | frontier | blue | arena | pickup
-// Coordinate riferite all'immagine di sfondo Mappa png.png (1396 x 1080)
+// Caselle del percorso: {n=nazione, t=tipo, city, goods?}
+// tipo: normal | frontier | blue | arena | pickup
+// La posizione sullo schermo è calcolata da cellXY(i): l'ordine dell'array È il percorso.
+// Giro d'Europa: Italia → Svizzera → Germania → Polonia → Baltici → Danimarca → Norvegia
+// → Germania → Paesi Bassi → Belgio → Francia → Spagna → Portogallo → ritorno via Francia,
+// Svizzera e Austria fino a Venezia, poi si riparte da Roma.
 const CELLE = [
-  {n:"Italia",   t:"pickup", city:"Roma",       x:755,y:755, goods:["Vino","Formaggio"]},
-  {n:"Italia",   t:"normal", city:"Napoli",     x:800,y:825, lab:{dy:33}},
-  {n:"Italia",   t:"blue",   city:"Milano",     x:665,y:705},
-  {n:"Svizzera", t:"frontier",city:"Frontiera", x:685,y:656, small:true},
-  {n:"Svizzera", t:"pickup", city:"Zurigo",     x:700,y:618, goods:["Orologi"], small:true, lab:{dx:14,dy:-18,a:"start"}},
-  {n:"Svizzera", t:"normal", city:"Berna",      x:660,y:630, small:true, lab:{dx:-20,dy:-8,a:"end"}},
-  {n:"Germania", t:"frontier",city:"Frontiera", x:676,y:606, small:true},
-  {n:"Germania", t:"normal", city:"Monaco",     x:715,y:560},
-  {n:"Germania", t:"arena",  city:"Berlino",    x:800,y:400, goods:["Auto"]},
-  {n:"Germania", t:"normal", city:"Colonia",    x:705,y:485},
-  {n:"Belgio",   t:"frontier",city:"Frontiera", x:661,y:477},
-  {n:"Belgio",   t:"blue",   city:"Bruxelles",  x:620,y:470, lab:{dx:-20,dy:30,a:"end"}},
-  {n:"Belgio",   t:"normal", city:"Anversa",    x:615,y:448, lab:{dx:21,dy:4,a:"start"}},
-  {n:"Francia",  t:"frontier",city:"Frontiera", x:583,y:459},
-  {n:"Francia",  t:"arena",  city:"Parigi",     x:468,y:500, goods:["Vino","Formaggio"]},
-  {n:"Francia",  t:"normal", city:"Lione",      x:518,y:622},
-  {n:"Francia",  t:"normal", city:"Marsiglia",  x:560,y:725},
-  {n:"Spagna",   t:"frontier",city:"Frontiera", x:372,y:739, small:true},
-  {n:"Spagna",   t:"pickup", city:"Barcellona", x:325,y:742, goods:["Vino"], lab:{dx:-23,dy:5,a:"end"}},
-  {n:"Spagna",   t:"normal", city:"Madrid",     x:238,y:826},
-  {n:"Spagna",   t:"normal", city:"Siviglia",   x:175,y:895},
-  {n:"Francia",  t:"frontier",city:"Frontiera", x:355,y:715, small:true},
-  {n:"Francia",  t:"normal", city:"Bordeaux",   x:380,y:690},
-  {n:"Svizzera", t:"frontier",city:"Frontiera", x:612,y:650, small:true},
-  {n:"Svizzera", t:"normal", city:"Ginevra",    x:638,y:645, small:true, lab:{dx:-10,dy:26,a:"end"}},
-  {n:"Austria",  t:"pickup", city:"Innsbruck",  x:775,y:608, goods:["Legname"]},
-  {n:"Italia",   t:"frontier",city:"Frontiera", x:783,y:641, small:true},
-  {n:"Italia",   t:"normal", city:"Venezia",    x:792,y:682, lab:{dx:10}},
+  {n:"Italia",      t:"pickup",  city:"Roma",       goods:["Vino","Formaggio"]},
+  {n:"Italia",      t:"normal",  city:"Napoli"},
+  {n:"Italia",      t:"blue",    city:"Milano"},
+  {n:"Svizzera",    t:"frontier",city:"Frontiera"},
+  {n:"Svizzera",    t:"pickup",  city:"Zurigo",     goods:["Orologi"]},
+  {n:"Svizzera",    t:"normal",  city:"Berna"},
+  {n:"Germania",    t:"frontier",city:"Frontiera"},
+  {n:"Germania",    t:"normal",  city:"Monaco"},
+  {n:"Germania",    t:"arena",   city:"Berlino",    goods:["Auto"]},
+  {n:"Polonia",     t:"frontier",city:"Frontiera"},
+  {n:"Polonia",     t:"normal",  city:"Breslavia"},
+  {n:"Polonia",     t:"arena",   city:"Varsavia"},
+  {n:"Polonia",     t:"pickup",  city:"Danzica",    goods:["Grano"]},
+  {n:"Lituania",    t:"frontier",city:"Frontiera"},
+  {n:"Lituania",    t:"normal",  city:"Vilnius"},
+  {n:"Lettonia",    t:"frontier",city:"Frontiera"},
+  {n:"Lettonia",    t:"blue",    city:"Riga"},
+  {n:"Estonia",     t:"frontier",city:"Frontiera"},
+  {n:"Estonia",     t:"normal",  city:"Tallinn"},
+  {n:"Danimarca",   t:"frontier",city:"Frontiera"},
+  {n:"Danimarca",   t:"normal",  city:"Copenaghen"},
+  {n:"Norvegia",    t:"frontier",city:"Frontiera"},
+  {n:"Norvegia",    t:"pickup",  city:"Oslo",       goods:["Pesce"]},
+  {n:"Germania",    t:"frontier",city:"Frontiera"},
+  {n:"Germania",    t:"normal",  city:"Francoforte"},
+  {n:"Germania",    t:"normal",  city:"Colonia"},
+  {n:"Paesi Bassi", t:"frontier",city:"Frontiera"},
+  {n:"Paesi Bassi", t:"pickup",  city:"Amsterdam",  goods:["Fiori"]},
+  {n:"Belgio",      t:"frontier",city:"Frontiera"},
+  {n:"Belgio",      t:"normal",  city:"Anversa"},
+  {n:"Belgio",      t:"blue",    city:"Bruxelles"},
+  {n:"Francia",     t:"frontier",city:"Frontiera"},
+  {n:"Francia",     t:"normal",  city:"Strasburgo"},
+  {n:"Francia",     t:"arena",   city:"Parigi",     goods:["Vino","Formaggio"]},
+  {n:"Francia",     t:"normal",  city:"Lione"},
+  {n:"Francia",     t:"normal",  city:"Marsiglia"},
+  {n:"Francia",     t:"normal",  city:"Tolosa"},
+  {n:"Spagna",      t:"frontier",city:"Frontiera"},
+  {n:"Spagna",      t:"normal",  city:"Bilbao"},
+  {n:"Spagna",      t:"normal",  city:"Madrid"},
+  {n:"Spagna",      t:"normal",  city:"Siviglia"},
+  {n:"Portogallo",  t:"frontier",city:"Frontiera"},
+  {n:"Portogallo",  t:"pickup",  city:"Lisbona",    goods:["Pesce"]},
+  {n:"Portogallo",  t:"pickup",  city:"Porto",      goods:["Vino"]},
+  {n:"Spagna",      t:"frontier",city:"Frontiera"},
+  {n:"Spagna",      t:"pickup",  city:"Barcellona", goods:["Vino"]},
+  {n:"Francia",     t:"frontier",city:"Frontiera"},
+  {n:"Francia",     t:"normal",  city:"Bordeaux"},
+  {n:"Svizzera",    t:"frontier",city:"Frontiera"},
+  {n:"Svizzera",    t:"normal",  city:"Ginevra"},
+  {n:"Austria",     t:"frontier",city:"Frontiera"},
+  {n:"Austria",     t:"normal",  city:"Vienna"},
+  {n:"Austria",     t:"pickup",  city:"Innsbruck",  goods:["Legname"]},
+  {n:"Italia",      t:"frontier",city:"Frontiera"},
+  {n:"Italia",      t:"normal",  city:"Venezia"},
 ];
 const N = CELLE.length;
-
-// Etichette delle nazioni da sovrapporre alla mappa (coordinate immagine)
-const NAZ_LABEL = [
-  {nome:"FRANCIA",  x:445,y:590},
-  {nome:"SPAGNA",   x:255,y:800},
-  {nome:"GERMANIA", x:850,y:480},
-  {nome:"ITALIA",   x:715,y:800},
-  {nome:"AUSTRIA",  x:890,y:655},
-];
+const MAX_CARICO = 3;   // merci massime trasportabili sul camion
 
 // Domande per nazione — formato bilingue: q:[it,en], o:[[it,en],...]
 const DOM_NAZIONE = {
@@ -239,36 +288,106 @@ const DOM_NAZIONE = {
     {q:["Qual è la capitale d'Italia?","What is the capital of Italy?"],o:[["Roma","Rome"],["Milano","Milan"],["Napoli","Naples"],["Torino","Turin"]],a:0},
     {q:["Quale fiume attraversa Roma?","Which river flows through Rome?"],o:[["Il Tevere","The Tiber"],["Il Po","The Po"],["L'Arno","The Arno"],["L'Adige","The Adige"]],a:0},
     {q:["Vero o Falso: l'Italia fu tra i 6 paesi fondatori della CEE (1957).","True or False: Italy was one of the 6 founding countries of the EEC (1957)."],o:[["Vero","True"],["Falso","False"]],a:0},
+    {q:["Quale città italiana è famosa per i canali e le gondole?","Which Italian city is famous for canals and gondolas?"],o:[["Venezia","Venice"],["Firenze","Florence"],["Genova","Genoa"],["Bari","Bari"]],a:0},
+    {q:["Quale moneta si usava in Italia prima dell'euro?","Which currency was used in Italy before the euro?"],o:[["La Lira","The Lira"],["Il Fiorino","The Florin"],["La Peseta","The Peseta"],["Il Franco","The Franc"]],a:0},
   ],
   Francia:[
     {q:["Qual è la capitale della Francia?","What is the capital of France?"],o:[["Parigi","Paris"],["Lione","Lyon"],["Marsiglia","Marseille"],["Nizza","Nice"]],a:0},
     {q:["In quale città francese ha sede il Parlamento Europeo?","In which French city is the European Parliament based?"],o:[["Strasburgo","Strasbourg"],["Parigi","Paris"],["Lione","Lyon"],["Bordeaux","Bordeaux"]],a:0},
     {q:["Vero o Falso: la Francia confina con la Spagna.","True or False: France borders Spain."],o:[["Vero","True"],["Falso","False"]],a:0},
+    {q:["Quale famoso monumento di ferro si trova a Parigi?","Which famous iron monument is in Paris?"],o:[["La Tour Eiffel","The Eiffel Tower"],["Il Big Ben","Big Ben"],["Il Colosseo","The Colosseum"],["L'Atomium","The Atomium"]],a:0},
+    {q:["Quale museo di Parigi ospita la Gioconda?","Which Paris museum houses the Mona Lisa?"],o:[["Il Louvre","The Louvre"],["Il Prado","The Prado"],["Gli Uffizi","The Uffizi"],["L'Orsay","The Orsay"]],a:0},
   ],
   Germania:[
     {q:["Qual è la capitale della Germania?","What is the capital of Germany?"],o:[["Berlino","Berlin"],["Monaco","Munich"],["Amburgo","Hamburg"],["Francoforte","Frankfurt"]],a:0},
     {q:["In che anno è caduto il Muro di Berlino?","In what year did the Berlin Wall fall?"],o:[["1989","1989"],["1979","1979"],["1991","1991"],["1968","1968"]],a:0},
     {q:["Vero o Falso: la Germania è il paese più popoloso dell'Unione Europea.","True or False: Germany is the most populous country in the European Union."],o:[["Vero","True"],["Falso","False"]],a:0},
+    {q:["Quale fiume attraversa Colonia?","Which river flows through Cologne?"],o:[["Il Reno","The Rhine"],["Il Danubio","The Danube"],["L'Elba","The Elbe"],["La Senna","The Seine"]],a:0},
+    {q:["Quale città tedesca è famosa per l'Oktoberfest?","Which German city is famous for the Oktoberfest?"],o:[["Monaco","Munich"],["Berlino","Berlin"],["Amburgo","Hamburg"],["Colonia","Cologne"]],a:0},
   ],
   Svizzera:[
     {q:["Qual è la capitale della Svizzera?","What is the capital of Switzerland?"],o:[["Berna","Bern"],["Zurigo","Zurich"],["Ginevra","Geneva"],["Basilea","Basel"]],a:0},
     {q:["La Svizzera fa parte dell'Unione Europea?","Is Switzerland part of the European Union?"],o:[["No","No"],["Sì","Yes"]],a:0},
     {q:["Quale prodotto è tipico della Svizzera?","Which product is typical of Switzerland?"],o:[["Orologi","Watches"],["Automobili","Cars"],["Legname","Timber"],["Olio","Oil"]],a:0},
+    {q:["Quante lingue ufficiali ha la Svizzera?","How many official languages does Switzerland have?"],o:[["4","4"],["2","2"],["1","1"],["3","3"]],a:0},
+    {q:["Vero o Falso: in Svizzera si paga con il franco svizzero, non con l'euro.","True or False: Switzerland pays with the Swiss franc, not the euro."],o:[["Vero","True"],["Falso","False"]],a:0},
   ],
   Spagna:[
     {q:["Qual è la capitale della Spagna?","What is the capital of Spain?"],o:[["Madrid","Madrid"],["Barcellona","Barcelona"],["Siviglia","Seville"],["Valencia","Valencia"]],a:0},
     {q:["Quale famosa basilica di Gaudí si trova a Barcellona?","Which famous Gaudí basilica is in Barcelona?"],o:[["Sagrada Família","Sagrada Família"],["Notre-Dame","Notre-Dame"],["Duomo","Cathedral"],["Alhambra","Alhambra"]],a:0},
     {q:["Vero o Falso: la Spagna usa l'euro.","True or False: Spain uses the euro."],o:[["Vero","True"],["Falso","False"]],a:0},
+    {q:["Quale ballo tradizionale è tipico della Spagna?","Which traditional dance is typical of Spain?"],o:[["Il Flamenco","Flamenco"],["Il Valzer","The Waltz"],["Il Sirtaki","Sirtaki"],["La Polka","Polka"]],a:0},
+    {q:["Quale museo di Madrid è tra i più famosi del mondo?","Which Madrid museum is among the most famous in the world?"],o:[["Il Prado","The Prado"],["Il Louvre","The Louvre"],["Gli Uffizi","The Uffizi"],["Il British Museum","The British Museum"]],a:0},
   ],
   Austria:[
     {q:["Qual è la capitale dell'Austria?","What is the capital of Austria?"],o:[["Vienna","Vienna"],["Salisburgo","Salzburg"],["Graz","Graz"],["Innsbruck","Innsbruck"]],a:0},
     {q:["Quale grande compositore nacque a Salisburgo (Austria)?","Which great composer was born in Salzburg (Austria)?"],o:[["Mozart","Mozart"],["Beethoven","Beethoven"],["Verdi","Verdi"],["Chopin","Chopin"]],a:0},
     {q:["Vero o Falso: l'Austria confina con l'Italia.","True or False: Austria borders Italy."],o:[["Vero","True"],["Falso","False"]],a:0},
+    {q:["Quale famoso valzer è legato a Vienna?","Which famous waltz is linked to Vienna?"],o:[["Il Danubio Blu","The Blue Danube"],["Lo Schiaccianoci","The Nutcracker"],["La Traviata","La Traviata"],["Carmen","Carmen"]],a:0},
+    {q:["Quale fiume attraversa Vienna?","Which river flows through Vienna?"],o:[["Il Danubio","The Danube"],["Il Reno","The Rhine"],["Il Po","The Po"],["La Loira","The Loire"]],a:0},
   ],
   Belgio:[
     {q:["Qual è la capitale del Belgio?","What is the capital of Belgium?"],o:[["Bruxelles","Brussels"],["Anversa","Antwerp"],["Gand","Ghent"],["Bruges","Bruges"]],a:0},
     {q:["A Bruxelles ha sede principale quale istituzione europea?","Which European institution is mainly based in Brussels?"],o:[["La Commissione Europea","The European Commission"],["La BCE","The ECB"],["La Corte dei Conti","The Court of Auditors"],["Il FMI","The IMF"]],a:0},
     {q:["Vero o Falso: in Belgio si parlano francese e neerlandese.","True or False: French and Dutch are spoken in Belgium."],o:[["Vero","True"],["Falso","False"]],a:0},
+    {q:["Per quale dolce è famoso il Belgio?","Which sweet is Belgium famous for?"],o:[["Il cioccolato","Chocolate"],["Il panettone","Panettone"],["La torta Sacher","Sacher cake"],["I churros","Churros"]],a:0},
+    {q:["Quale statua-simbolo si trova a Bruxelles?","Which symbolic statue is in Brussels?"],o:[["Il Manneken Pis","Manneken Pis"],["La Sirenetta","The Little Mermaid"],["Il David","David"],["La Statua della Libertà","The Statue of Liberty"]],a:0},
+  ],
+  Portogallo:[
+    {q:["Qual è la capitale del Portogallo?","What is the capital of Portugal?"],o:[["Lisbona","Lisbon"],["Porto","Porto"],["Coimbra","Coimbra"],["Braga","Braga"]],a:0},
+    {q:["Quale vino famoso prende il nome da una città portoghese?","Which famous wine is named after a Portuguese city?"],o:[["Il Porto","Port wine"],["Il Chianti","Chianti"],["Lo Champagne","Champagne"],["Il Rioja","Rioja"]],a:0},
+    {q:["Vero o Falso: il Portogallo si affaccia sull'Oceano Atlantico.","True or False: Portugal faces the Atlantic Ocean."],o:[["Vero","True"],["Falso","False"]],a:0},
+    {q:["Quale navigatore portoghese aprì la rotta marittima per l'India?","Which Portuguese navigator opened the sea route to India?"],o:[["Vasco da Gama","Vasco da Gama"],["Cristoforo Colombo","Christopher Columbus"],["James Cook","James Cook"],["Amerigo Vespucci","Amerigo Vespucci"]],a:0},
+    {q:["Come si chiama il canto tradizionale portoghese?","What is the traditional Portuguese song style called?"],o:[["Il Fado","Fado"],["Il Flamenco","Flamenco"],["Il Tango","Tango"],["La Polka","Polka"]],a:0},
+  ],
+  "Paesi Bassi":[
+    {q:["Qual è la capitale dei Paesi Bassi?","What is the capital of the Netherlands?"],o:[["Amsterdam","Amsterdam"],["Rotterdam","Rotterdam"],["L'Aia","The Hague"],["Utrecht","Utrecht"]],a:0},
+    {q:["Quale fiore è il simbolo dei Paesi Bassi?","Which flower is the symbol of the Netherlands?"],o:[["Il tulipano","The tulip"],["La rosa","The rose"],["Il girasole","The sunflower"],["La lavanda","Lavender"]],a:0},
+    {q:["Vero o Falso: gran parte dei Paesi Bassi si trova sotto il livello del mare.","True or False: much of the Netherlands lies below sea level."],o:[["Vero","True"],["Falso","False"]],a:0},
+    {q:["Quale mezzo di trasporto è amatissimo nei Paesi Bassi?","Which means of transport is beloved in the Netherlands?"],o:[["La bicicletta","The bicycle"],["La gondola","The gondola"],["La slitta","The sled"],["Il cammello","The camel"]],a:0},
+    {q:["In quale città olandese ha sede la Corte Internazionale di Giustizia?","In which Dutch city is the International Court of Justice based?"],o:[["L'Aia","The Hague"],["Amsterdam","Amsterdam"],["Rotterdam","Rotterdam"],["Eindhoven","Eindhoven"]],a:0},
+  ],
+  Polonia:[
+    {q:["Qual è la capitale della Polonia?","What is the capital of Poland?"],o:[["Varsavia","Warsaw"],["Cracovia","Krakow"],["Danzica","Gdańsk"],["Breslavia","Wrocław"]],a:0},
+    {q:["Quale grande compositore polacco è famoso per i suoi brani per pianoforte?","Which great Polish composer is famous for his piano pieces?"],o:[["Chopin","Chopin"],["Mozart","Mozart"],["Verdi","Verdi"],["Bach","Bach"]],a:0},
+    {q:["Vero o Falso: la Polonia usa l'euro.","True or False: Poland uses the euro."],o:[["Falso: usa lo zloty","False: it uses the zloty"],["Vero","True"]],a:0},
+    {q:["Quale astronomo polacco capì che la Terra gira intorno al Sole?","Which Polish astronomer understood that the Earth orbits the Sun?"],o:[["Copernico","Copernicus"],["Galileo","Galileo"],["Newton","Newton"],["Keplero","Kepler"]],a:0},
+    {q:["In quale città polacca nacque il sindacato Solidarność?","In which Polish city was the Solidarity trade union born?"],o:[["Danzica","Gdańsk"],["Varsavia","Warsaw"],["Cracovia","Krakow"],["Poznań","Poznań"]],a:0},
+  ],
+  Lituania:[
+    {q:["Qual è la capitale della Lituania?","What is the capital of Lithuania?"],o:[["Vilnius","Vilnius"],["Riga","Riga"],["Tallinn","Tallinn"],["Kaunas","Kaunas"]],a:0},
+    {q:["Su quale mare si affaccia la Lituania?","Which sea does Lithuania face?"],o:[["Il Mar Baltico","The Baltic Sea"],["Il Mare del Nord","The North Sea"],["Il Mar Nero","The Black Sea"],["L'Adriatico","The Adriatic"]],a:0},
+    {q:["Qual è lo sport nazionale della Lituania?","What is Lithuania's national sport?"],o:[["La pallacanestro","Basketball"],["Il calcio","Football"],["Lo sci","Skiing"],["Il tennis","Tennis"]],a:0},
+    {q:["Vero o Falso: la Lituania fu il primo paese a dichiarare l'indipendenza dall'URSS (1990).","True or False: Lithuania was the first country to declare independence from the USSR (1990)."],o:[["Vero","True"],["Falso","False"]],a:0},
+    {q:["La Lituania usa l'euro?","Does Lithuania use the euro?"],o:[["Sì","Yes"],["No","No"]],a:0},
+  ],
+  Lettonia:[
+    {q:["Qual è la capitale della Lettonia?","What is the capital of Latvia?"],o:[["Riga","Riga"],["Vilnius","Vilnius"],["Tallinn","Tallinn"],["Liepāja","Liepāja"]],a:0},
+    {q:["Su quale mare si affaccia la Lettonia?","Which sea does Latvia face?"],o:[["Il Mar Baltico","The Baltic Sea"],["Il Mar Mediterraneo","The Mediterranean Sea"],["Il Mar Nero","The Black Sea"],["Il Mare del Nord","The North Sea"]],a:0},
+    {q:["Per quale stile architettonico è famoso il centro di Riga?","For which architectural style is the centre of Riga famous?"],o:[["Il liberty (Art Nouveau)","Art Nouveau"],["I grattacieli","Skyscrapers"],["I templi greci","Greek temples"],["Le piramidi","Pyramids"]],a:0},
+    {q:["Vero o Falso: in Lettonia le feste del canto corale sono una grande tradizione.","True or False: choral song festivals are a great tradition in Latvia."],o:[["Vero","True"],["Falso","False"]],a:0},
+    {q:["Quale di questi paesi confina con la Lettonia?","Which of these countries borders Latvia?"],o:[["L'Estonia","Estonia"],["La Spagna","Spain"],["L'Italia","Italy"],["La Grecia","Greece"]],a:0},
+  ],
+  Estonia:[
+    {q:["Qual è la capitale dell'Estonia?","What is the capital of Estonia?"],o:[["Tallinn","Tallinn"],["Riga","Riga"],["Helsinki","Helsinki"],["Vilnius","Vilnius"]],a:0},
+    {q:["L'Estonia è famosa per essere molto avanzata in cosa?","Estonia is famous for being very advanced in what?"],o:[["Nel digitale: si vota anche online","In digital life: people even vote online"],["Nella coltivazione di ulivi","In olive growing"],["Nelle corride","In bullfighting"],["Nella pesca del tonno","In tuna fishing"]],a:0},
+    {q:["Vero o Falso: da Tallinn si può raggiungere Helsinki in traghetto.","True or False: you can reach Helsinki from Tallinn by ferry."],o:[["Vero","True"],["Falso","False"]],a:0},
+    {q:["Quale famoso programma per videochiamate è nato in Estonia?","Which famous video-call program was born in Estonia?"],o:[["Skype","Skype"],["WhatsApp","WhatsApp"],["Facebook","Facebook"],["Instagram","Instagram"]],a:0},
+    {q:["Su quale mare si affaccia l'Estonia?","Which sea does Estonia face?"],o:[["Il Mar Baltico","The Baltic Sea"],["Il Mar Caspio","The Caspian Sea"],["Il Mar Rosso","The Red Sea"],["L'Atlantico","The Atlantic"]],a:0},
+  ],
+  Danimarca:[
+    {q:["Qual è la capitale della Danimarca?","What is the capital of Denmark?"],o:[["Copenaghen","Copenhagen"],["Oslo","Oslo"],["Stoccolma","Stockholm"],["Amburgo","Hamburg"]],a:0},
+    {q:["Quale famosa statua si trova nel porto di Copenaghen?","Which famous statue is in Copenhagen's harbour?"],o:[["La Sirenetta","The Little Mermaid"],["Il Manneken Pis","Manneken Pis"],["Il David","David"],["Il Discobolo","The Discus Thrower"]],a:0},
+    {q:["Quali famosi mattoncini da costruzione sono nati in Danimarca?","Which famous building bricks were born in Denmark?"],o:[["I LEGO","LEGO"],["I Playmobil","Playmobil"],["Il Meccano","Meccano"],["Il Domino","Dominoes"]],a:0},
+    {q:["Quale scrittore danese è famoso per le sue fiabe?","Which Danish writer is famous for his fairy tales?"],o:[["Andersen","Andersen"],["I fratelli Grimm","The Brothers Grimm"],["Perrault","Perrault"],["Esopo","Aesop"]],a:0},
+    {q:["Vero o Falso: la Danimarca usa la corona danese, non l'euro.","True or False: Denmark uses the Danish krone, not the euro."],o:[["Vero","True"],["Falso","False"]],a:0},
+  ],
+  Norvegia:[
+    {q:["Qual è la capitale della Norvegia?","What is the capital of Norway?"],o:[["Oslo","Oslo"],["Copenaghen","Copenhagen"],["Stoccolma","Stockholm"],["Bergen","Bergen"]],a:0},
+    {q:["Come si chiamano le lunghe insenature della costa norvegese?","What are the long inlets of the Norwegian coast called?"],o:[["I fiordi","Fjords"],["I canyon","Canyons"],["Le lagune","Lagoons"],["I delta","Deltas"]],a:0},
+    {q:["Vero o Falso: la Norvegia fa parte dell'Unione Europea.","True or False: Norway is part of the European Union."],o:[["Falso","False"],["Vero","True"]],a:0},
+    {q:["Quale premio Nobel viene consegnato a Oslo?","Which Nobel Prize is awarded in Oslo?"],o:[["Il Nobel per la Pace","The Nobel Peace Prize"],["Il Nobel per la Letteratura","The Nobel Prize in Literature"],["Il Nobel per la Fisica","The Nobel Prize in Physics"],["Il Nobel per la Medicina","The Nobel Prize in Medicine"]],a:0},
+    {q:["Quale fenomeno si può vedere d'estate nel nord della Norvegia?","Which phenomenon can be seen in summer in northern Norway?"],o:[["Il sole di mezzanotte","The midnight sun"],["Un'eclissi ogni notte","An eclipse every night"],["I monsoni","Monsoons"],["I geyser di lava","Lava geysers"]],a:0},
   ],
 };
 // Domande generali sull'Europa e le istituzioni (per Arena / Il Momento)
@@ -285,11 +404,17 @@ const DOM_GENERALI = [
   {q:["Quale trattato (1992) ha istituito l'Unione Europea?","Which treaty (1992) established the European Union?"],o:[["Maastricht","Maastricht"],["Roma","Rome"],["Lisbona","Lisbon"],["Schengen","Schengen"]],a:0},
   {q:["Quando si celebra la Festa dell'Europa?","When is Europe Day celebrated?"],o:[["9 maggio","9 May"],["1 gennaio","1 January"],["25 marzo","25 March"],["14 luglio","14 July"]],a:0},
   {q:["Quante lingue ufficiali ha circa l'Unione Europea?","About how many official languages does the EU have?"],o:[["24","24"],["5","5"],["12","12"],["40","40"]],a:0},
+  {q:["Dove si riunisce il Parlamento Europeo in seduta plenaria?","Where does the European Parliament meet in plenary session?"],o:[["Strasburgo","Strasbourg"],["Ginevra","Geneva"],["Vienna","Vienna"],["Madrid","Madrid"]],a:0},
+  {q:["Quale programma UE permette agli studenti di studiare all'estero?","Which EU programme lets students study abroad?"],o:[["Erasmus","Erasmus"],["Galileo","Galileo"],["Horizon","Horizon"],["Leonardo","Leonardo"]],a:0},
+  {q:["Vero o Falso: la Norvegia fa parte dell'Unione Europea.","True or False: Norway is part of the European Union."],o:[["Falso","False"],["Vero","True"]],a:0},
+  {q:["Circa quanti paesi usano l'euro come moneta?","About how many countries use the euro as currency?"],o:[["20","20"],["10","10"],["27","27"],["5","5"]],a:0},
+  {q:["Qual è il motto dell'Unione Europea?","What is the motto of the European Union?"],o:[["Unita nella diversità","United in diversity"],["Libertà, uguaglianza, fraternità","Liberty, equality, fraternity"],["Pace e lavoro","Peace and work"],["E pluribus unum","E pluribus unum"]],a:0},
+  {q:["In quale anno l'Unione Europea ha ricevuto il Premio Nobel per la Pace?","In which year did the European Union receive the Nobel Peace Prize?"],o:[["2012","2012"],["1992","1992"],["2002","2002"],["2020","2020"]],a:0},
 ];
 // Imprevisti — txt:{it,en}
 const IMPREVISTI = [
   {txt:{it:"⛴️ Sciopero dei traghetti nel Mediterraneo: i porti sono chiusi! Salti il prossimo turno.",en:"⛴️ Ferry strike in the Mediterranean: the ports are closed! You miss your next turn."}, eff:p=>{p.skip=true;}},
-  {txt:{it:"🛣️ Autostrada libera e fondi europei per le strade! Avanzi di 2 caselle extra.",en:"🛣️ Clear motorway and EU road funds! You move 2 extra squares."}, eff:p=>{muoviSemplice(p,2);}},
+  {txt:{it:"🛣️ Autostrada libera e fondi europei per le strade! Avanzi di 2 caselle extra (le dogane ti fanno passare).",en:"🛣️ Clear motorway and EU road funds! You move 2 extra squares (customs wave you through)."}, eff:p=>{muoviSemplice(p,2);}},
   {txt:{it:"🛃 Controllo doganale a sorpresa: perdi una merce dal camion.",en:"🛃 Surprise customs check: you lose one good from your truck."}, eff:p=>{if(p.inv.length){const g=p.inv.shift();log(()=>tr(`${p.nome} perde ${MERCI[g]} ${merce(g)}.`,`${p.nome} loses ${MERCI[g]} ${merce(g)}.`));}}},
   {txt:{it:"💶 Fondi europei in arrivo: ricevi un Jolly!",en:"💶 EU funds incoming: you get a Joker!"}, eff:p=>{p.jolly++;}},
   {txt:{it:"🎉 Festa europea in piazza: +5 punti Cultura!",en:"🎉 European festival in the square: +5 Culture points!"}, eff:p=>{p.cultura+=5;}},
@@ -311,17 +436,23 @@ function regoleListHTML(){
      <li><b>🎲 Tira il dado</b> per muovere il camioncino lungo le strade d'Europa.</li>
      <li><b>⏱ Cronometro:</b> hai <b>30 secondi</b> per rispondere a ogni domanda.</li>
      <li><b>🛂 Frontiere (caselle oro):</b> ci si ferma e si tira il <b>Dado Doganale</b> → 1-4 = domanda di cultura (se sbagli salti il turno), 5 = Schengen (passi e raddoppi il movimento), 6 = Jolly (passi e ottieni un Jolly).</li>
-     <li><b>📦 Caselle verdi (città):</b> qui puoi <b>prelevare le merci</b> prodotte dalla nazione.</li>
-     <li><b>🔵 Caselle blu</b> (Milano, Bruxelles): bonus Integrazione + una merce gratis; se c'è un altro giocatore potete <b>scambiarvi le merci</b>.</li>
+     <li><b>📦 Caselle verdi (città):</b> qui puoi <b>prelevare le merci</b> prodotte dalla nazione (massimo <b>3 merci</b> sul camion).</li>
+     <li><b>🎯 Destinazione:</b> le caselle della nazione dove devi consegnare sono <b>evidenziate</b> con un bordo lampeggiante del tuo colore; dopo ogni consegna <b>scegli il nuovo contratto</b> tra due proposte.</li>
+     <li><b>💾 Salvataggio:</b> la partita si salva da sola a ogni turno; se chiudi la pagina, alla riapertura puoi riprenderla.</li>
+     <li><b>🔵 Caselle blu</b> (Milano, Riga, Bruxelles): bonus Integrazione + una merce gratis; se c'è un altro giocatore potete <b>scambiarvi le merci</b>.</li>
+     <li><b>🗺 Schermo:</b> il gioco passa da solo dal tabellone (durante il movimento) al pannello (quando devi agire); col pulsante <b>🗺/🎛</b> in alto cambi vista quando vuoi.</li>
      <li><b>⭐ Caselle Arena (rosse) o un "6" col dado:</b> scatta <b>Il Momento</b>: quiz per <b>tutti i giocatori</b>! +5 Cultura a chi indovina; il primo che indovina vince un Jolly.</li>
      <li><b>🃏 Jolly:</b> puoi usarlo per <b>passare la dogana</b> senza rispondere, <b>cambiare la domanda</b>, o <b>rubare una merce</b> a un avversario.</li>
      <li><b>🏆 Vince</b> chi, completati 3 contratti, ha il punteggio totale più alto (Integrazione + Cultura); a parità, chi ha più contratti.</li>`,
     `<li><b>Goal:</b> complete <b>3 contracts</b> by delivering the requested good to the destination country.</li>
+     <li><b>🎯 Destination:</b> the squares of the country where you must deliver are <b>highlighted</b> with a blinking border in your colour; after each delivery you <b>choose your next contract</b> out of two offers.</li>
+     <li><b>💾 Autosave:</b> the game saves itself every turn; if you close the page you can resume it later.</li>
      <li><b>🎲 Roll the dice</b> to move your little truck along Europe's roads.</li>
      <li><b>⏱ Timer:</b> you have <b>30 seconds</b> to answer each question.</li>
      <li><b>🛂 Borders (gold squares):</b> you stop and roll the <b>Customs Die</b> → 1-4 = culture question (if wrong you miss a turn), 5 = Schengen (pass and double your remaining move), 6 = Joker (pass and get a Joker).</li>
      <li><b>📦 Green squares (cities):</b> here you can <b>pick up the goods</b> produced by the nation.</li>
-     <li><b>🔵 Blue squares</b> (Milan, Brussels): Integration bonus + one free good; if another player is there you can <b>exchange goods</b>.</li>
+     <li><b>🔵 Blue squares</b> (Milan, Riga, Brussels): Integration bonus + one free good; if another player is there you can <b>exchange goods</b>.</li>
+     <li><b>🗺 Screen:</b> the game switches by itself between the board (while moving) and the panel (when you must act); with the <b>🗺/🎛</b> button at the top you can change view any time.</li>
      <li><b>⭐ Arena squares (red) or rolling a "6":</b> <b>The Moment</b> begins: a quiz for <b>all players</b>! +5 Culture for each correct answer; the first to answer correctly wins a Joker.</li>
      <li><b>🃏 Joker:</b> use it to <b>pass customs</b> without answering, <b>change the question</b>, or <b>steal a good</b> from an opponent.</li>
      <li><b>🏆 The winner</b> is whoever, after completing 3 contracts, has the highest total score (Integration + Culture); ties go to whoever has more contracts.</li>`);
@@ -337,12 +468,15 @@ function applyLang(){
   setText('hNum', tr("Quanti giocatori? (da 1 a 6)","How many players? (1 to 6)"));
   setText('hNomi', tr("Nomi dei giocatori","Player names"));
   setText('btnStart', tr("▶ Inizia la partita","▶ Start the game"));
+  setText('btnResume', tr("💾 Riprendi la partita salvata","💾 Resume saved game"));
   setText('lblSuoni', tr("🔊 Suoni","🔊 Sounds"));
   setText('sumRegole', tr("📖 Come si gioca (regole)","📖 How to play (rules)"));
   setText('ulRegole', regoleListHTML());
   // gioco
   setText('btnRegole', tr("📖 Regole","📖 Rules"));
   setText('btnNuova', tr("↺ Nuova partita","↺ New game"));
+  const bv=document.getElementById('btnVista');
+  if(bv) bv.textContent = vistaCorrente==='tab' ? tr('🎛 Pannello','🎛 Panel') : tr('🗺 Tabellone','🗺 Board');
   setText('btnDado', tr("🎲 Tira il dado","🎲 Roll the dice"));
   setText('hClass', tr("🏆 Classifica","🏆 Leaderboard"));
   setText('hDiario', tr("📜 Diario di gioco","📜 Game log"));
@@ -354,12 +488,39 @@ function bannerTurno(){
   const p=cur(); b.style.borderColor=p.col;
   b.innerHTML=tr(`🚚 Tocca a <span style="color:${p.col}">${p.nome}</span>`,
                  `🚚 <span style="color:${p.col}">${p.nome}</span>'s turn`);
+  aggiornaBoardBar();
 }
 function setLang(l){
   lang=l; applyLang(); renderLog();
   if(players.length){ renderGiocatore(); renderScore(); disegnaMappa(); bannerTurno(); }
 }
 function toggleLang(){ setLang(lang==='it'?'en':'it'); }
+
+/* ============================================================
+   ALTERNANZA AUTOMATICA tabellone / pannello
+   Durante il movimento si vede il tabellone a tutto schermo;
+   quando è il momento di agire (dado, azioni) compare il pannello.
+   Col pulsante 🗺/🎛 in alto si può cambiare vista quando si vuole.
+   ============================================================ */
+let vistaCorrente='pan';
+function vista(v){
+  vistaCorrente=v;
+  const g=document.getElementById('gioco');
+  g.classList.toggle('vista-tab', v==='tab');
+  g.classList.toggle('vista-pan', v==='pan');
+  const b=document.getElementById('btnVista');
+  if(b) b.textContent = v==='tab' ? tr('🎛 Pannello','🎛 Panel') : tr('🗺 Tabellone','🗺 Board');
+  if(v==='tab') aggiornaBoardBar();
+}
+function toggleVista(){ vista(vistaCorrente==='tab'?'pan':'tab'); }
+// Barra sopra il tabellone: chi gioca, ultimo dado, contratto attivo
+function aggiornaBoardBar(){
+  const bar=document.getElementById('boardBar'); if(!bar||!players.length) return;
+  const p=cur();
+  const dado=ctx.roll?`<span class="bb-chip">🎲 ${ctx.roll}</span>`:'';
+  const contr=p.contratto?`<span class="bb-chip">📄 ${MERCI[p.contratto.good]} ${merce(p.contratto.good)} → ${naz(p.contratto.dest)}</span>`:'';
+  bar.innerHTML=`<span class="bb-chip" style="border-color:${p.col};color:${p.col};">🚚 ${p.nome}</span>${dado}${contr}`;
+}
 
 /* ============================================================
    STATO
@@ -370,6 +531,32 @@ let turno = 0;            // indice giocatore corrente
 let ctx = {};            // contesto del turno in corso
 let audio = true;
 let bloccaDado = false;
+
+/* ============================================================
+   SALVATAGGIO AUTOMATICO (localStorage)
+   La partita si salva all'inizio di ogni turno; alla riapertura
+   della pagina compare il pulsante "Riprendi la partita".
+   ============================================================ */
+function salvaPartita(){
+  try{ localStorage.setItem("steSalvataggio2", JSON.stringify({players,turno,lang})); }catch(e){}
+}
+function cancellaSalvataggio(){ try{ localStorage.removeItem("steSalvataggio2"); }catch(e){} }
+function riprendiPartita(){
+  try{
+    const s=JSON.parse(localStorage.getItem("steSalvataggio2"));
+    if(!s || !s.players || !s.players.length) throw 0;
+    players=s.players; turno=s.turno||0; nGiocatori=players.length; lang=s.lang||'it';
+    audio=document.getElementById("audioOn").checked;
+    document.getElementById("setup").style.display="none";
+    document.getElementById("gioco").style.display="block";
+    applyLang(); aggiornaAudioBtn();
+    log(()=>tr("💾 Partita ripresa dal salvataggio automatico.","💾 Game resumed from autosave."));
+    iniziaTurno();
+  }catch(e){
+    cancellaSalvataggio();
+    alert(tr("Il salvataggio non è valido: inizia una nuova partita.","The save is not valid: start a new game."));
+  }
+}
 
 /* ============================================================
    SETUP
@@ -383,6 +570,8 @@ function initSetup(){
     nd.appendChild(b);
   }
   renderNum(); refreshNomi(); applyLang();
+  // se c'è una partita salvata, offri di riprenderla
+  try{ if(localStorage.getItem("steSalvataggio2")) document.getElementById("resumeBox").style.display="block"; }catch(e){}
 }
 function renderNum(){
   [...document.getElementById("numGiocatori").children].forEach((b,i)=>{
@@ -421,63 +610,122 @@ function avviaPartita(){
 }
 
 function nuovaPartita(){
-  if(confirm(tr("Vuoi iniziare una nuova partita?","Start a new game?"))) location.reload();
+  if(confirm(tr("Vuoi iniziare una nuova partita?","Start a new game?"))){ cancellaSalvataggio(); location.reload(); }
 }
 
 function nuovoContratto(){
   const merci=Object.keys(MERCI);
   const good=merci[Math.floor(Math.random()*merci.length)];
-  const dest=NAZIONI[Math.floor(Math.random()*NAZIONI.length)];
+  // la destinazione non può essere una nazione che produce quella merce (niente consegne "gratis")
+  const produttori=CELLE.filter(c=>c.goods&&c.goods.includes(good)).map(c=>c.n);
+  const dests=NAZIONI.filter(n=>!produttori.includes(n));
+  const dest=dests[Math.floor(Math.random()*dests.length)];
   return {good,dest};
 }
 
 /* ============================================================
-   DISEGNO MAPPA
+   DISEGNO TABELLONE — serpentina: 5 file da 11 caselle grandi.
+   L'ordine delle caselle è quello dell'array CELLE; la posizione
+   sullo schermo è calcolata da cellXY(i).
    ============================================================ */
+const COLS=11, CW=160, CH=120, PX=172, PY=210, MX=60, MY=56;
+function cellXY(i){
+  const row=Math.floor(i/COLS), k=i%COLS;
+  const col=(row%2===0)?k:(COLS-1-k);          // le file dispari corrono da destra a sinistra
+  const x=MX+col*PX, y=MY+row*PY;
+  return {x,y,cx:x+CW/2,cy:y+CH/2,row,col};
+}
+// Bandierine disegnate in SVG (le emoji-bandiera non si vedono su Windows)
+function flagSVG(n,x,y,w,h){
+  const t=w/3, f=h/3;
+  let s="";
+  if(n==="Italia")   s=`<rect x="${x}" y="${y}" width="${t}" height="${h}" fill="#009246"/><rect x="${x+t}" y="${y}" width="${t}" height="${h}" fill="#fff"/><rect x="${x+2*t}" y="${y}" width="${t}" height="${h}" fill="#CE2B37"/>`;
+  else if(n==="Francia") s=`<rect x="${x}" y="${y}" width="${t}" height="${h}" fill="#0055A4"/><rect x="${x+t}" y="${y}" width="${t}" height="${h}" fill="#fff"/><rect x="${x+2*t}" y="${y}" width="${t}" height="${h}" fill="#EF4135"/>`;
+  else if(n==="Belgio")  s=`<rect x="${x}" y="${y}" width="${t}" height="${h}" fill="#000"/><rect x="${x+t}" y="${y}" width="${t}" height="${h}" fill="#FDDA24"/><rect x="${x+2*t}" y="${y}" width="${t}" height="${h}" fill="#EF3340"/>`;
+  else if(n==="Germania")s=`<rect x="${x}" y="${y}" width="${w}" height="${f}" fill="#000"/><rect x="${x}" y="${y+f}" width="${w}" height="${f}" fill="#DD0000"/><rect x="${x}" y="${y+2*f}" width="${w}" height="${f}" fill="#FFCE00"/>`;
+  else if(n==="Austria") s=`<rect x="${x}" y="${y}" width="${w}" height="${f}" fill="#ED2939"/><rect x="${x}" y="${y+f}" width="${w}" height="${f}" fill="#fff"/><rect x="${x}" y="${y+2*f}" width="${w}" height="${f}" fill="#ED2939"/>`;
+  else if(n==="Spagna")  s=`<rect x="${x}" y="${y}" width="${w}" height="${h}" fill="#F1BF00"/><rect x="${x}" y="${y}" width="${w}" height="${h/4}" fill="#AA151B"/><rect x="${x}" y="${y+3*h/4}" width="${w}" height="${h/4}" fill="#AA151B"/>`;
+  else if(n==="Svizzera")s=`<rect x="${x}" y="${y}" width="${w}" height="${h}" fill="#DA291C"/><rect x="${x+w/2-w*0.09}" y="${y+h*0.18}" width="${w*0.18}" height="${h*0.64}" fill="#fff"/><rect x="${x+w/2-w*0.22}" y="${y+h/2-h*0.11}" width="${w*0.44}" height="${h*0.22}" fill="#fff"/>`;
+  else if(n==="Portogallo") s=`<rect x="${x}" y="${y}" width="${w*0.4}" height="${h}" fill="#046A38"/><rect x="${x+w*0.4}" y="${y}" width="${w*0.6}" height="${h}" fill="#DA291C"/><circle cx="${x+w*0.4}" cy="${y+h/2}" r="${h*0.22}" fill="#FFE900" stroke="#00000033" stroke-width="1"/>`;
+  else if(n==="Paesi Bassi") s=`<rect x="${x}" y="${y}" width="${w}" height="${f}" fill="#AE1C28"/><rect x="${x}" y="${y+f}" width="${w}" height="${f}" fill="#fff"/><rect x="${x}" y="${y+2*f}" width="${w}" height="${f}" fill="#21468B"/>`;
+  else if(n==="Polonia") s=`<rect x="${x}" y="${y}" width="${w}" height="${h/2}" fill="#fff"/><rect x="${x}" y="${y+h/2}" width="${w}" height="${h/2}" fill="#DC143C"/>`;
+  else if(n==="Lituania") s=`<rect x="${x}" y="${y}" width="${w}" height="${f}" fill="#FDB913"/><rect x="${x}" y="${y+f}" width="${w}" height="${f}" fill="#006A44"/><rect x="${x}" y="${y+2*f}" width="${w}" height="${f}" fill="#C1272D"/>`;
+  else if(n==="Lettonia") s=`<rect x="${x}" y="${y}" width="${w}" height="${h}" fill="#9E3039"/><rect x="${x}" y="${y+h*0.4}" width="${w}" height="${h*0.2}" fill="#fff"/>`;
+  else if(n==="Estonia") s=`<rect x="${x}" y="${y}" width="${w}" height="${f}" fill="#0072CE"/><rect x="${x}" y="${y+f}" width="${w}" height="${f}" fill="#000"/><rect x="${x}" y="${y+2*f}" width="${w}" height="${f}" fill="#fff"/>`;
+  else if(n==="Danimarca") s=`<rect x="${x}" y="${y}" width="${w}" height="${h}" fill="#C8102E"/><rect x="${x+w*0.28}" y="${y}" width="${w*0.13}" height="${h}" fill="#fff"/><rect x="${x}" y="${y+h*0.40}" width="${w}" height="${h*0.2}" fill="#fff"/>`;
+  else if(n==="Norvegia") s=`<rect x="${x}" y="${y}" width="${w}" height="${h}" fill="#BA0C2F"/><rect x="${x+w*0.25}" y="${y}" width="${w*0.19}" height="${h}" fill="#fff"/><rect x="${x}" y="${y+h*0.36}" width="${w}" height="${h*0.28}" fill="#fff"/><rect x="${x+w*0.30}" y="${y}" width="${w*0.09}" height="${h}" fill="#00205B"/><rect x="${x}" y="${y+h*0.43}" width="${w}" height="${h*0.14}" fill="#00205B"/>`;
+  return s+`<rect x="${x}" y="${y}" width="${w}" height="${h}" fill="none" stroke="#00000055" stroke-width="1.5" rx="2"/>`;
+}
 function disegnaMappa(){
   const svg=document.getElementById("board");
   let s="";
-  // sfondo: mappa reale dell'Europa
-  s+=`<image href="Mappa-hd.png" x="0" y="0" width="1396" height="1080" preserveAspectRatio="xMidYMid meet"/>`;
-  // strada (percorso) come polilinea chiusa
-  let pts=CELLE.map(c=>c.x+","+c.y).join(" ");
-  s+=`<polyline points="${pts} ${CELLE[0].x},${CELLE[0].y}" fill="none" stroke="#3a2207" stroke-width="9" stroke-linejoin="round" stroke-dasharray="3 18" stroke-linecap="round" opacity=".85"/>`;
-  // celle
+  // sfondo
+  s+=`<rect x="0" y="0" width="2020" height="1110" rx="18" fill="#dce9f8"/>`;
+  // strada: passa per i centri delle caselle; dall'ultima casella (in basso a destra)
+  // si ritorna alla partenza risalendo il bordo destro e percorrendo il bordo alto
+  const pts=[];
+  for(let i=0;i<N;i++){const q=cellXY(i);pts.push(q.cx+","+q.cy);}
+  const first=cellXY(0), last=cellXY(N-1);
+  pts.push(`1988,${last.cy}`,`1988,26`,`${first.cx},26`,`${first.cx},${first.cy}`);
+  const ptStr=pts.join(" ");
+  s+=`<polyline points="${ptStr}" fill="none" stroke="#8a93a5" stroke-width="30" stroke-linejoin="round" stroke-linecap="round"/>`;
+  s+=`<polyline points="${ptStr}" fill="none" stroke="#fff" stroke-width="4" stroke-dasharray="14 16" stroke-linejoin="round" stroke-linecap="round" opacity=".9"/>`;
+  // frecce sulla strada di ritorno: si risale a destra e si torna a sinistra in alto
+  [0.30,0.60,0.85].forEach(f=>{
+    const ay=last.cy-(last.cy-26)*f;
+    s+=`<polygon points="1988,${ay-12} 2000,${ay+9} 1976,${ay+9}" fill="#fff" opacity=".95"/>`;
+  });
+  [0.35,0.70].forEach(f=>{
+    const ax=1988-(1988-first.cx)*f;
+    s+=`<polygon points="${ax-12},26 ${ax+9},14 ${ax+9},38" fill="#fff" opacity=".95"/>`;
+  });
+  // caselle
+  const destEvid=(players.length && cur().contratto) ? cur().contratto.dest : null;
   CELLE.forEach((c,i)=>{
-    let col="#ffffff", r=16, stroke="#003399";
+    const q=cellXY(i);
+    let col="#ffffff", stroke="#003399", txt="#1a1a2e";
     if(c.t==="frontier"){col="#FFCC00";stroke="#b58a00";}
-    else if(c.t==="blue"){col="#2E77D0";stroke="#13407a";r=19;}
-    else if(c.t==="arena"){col="#C0392B";stroke="#7d1f15";r=19;}
-    else if(c.t==="pickup"){col="#1f8a3b";stroke="#0f5a23";r=18;}
-    else if(c.t==="start"){col="#1f8a3b";stroke="#0f5a23";}
-    // zona affollata (Europa centrale): caselle più piccole per fare aria
-    if(c.small) r = (c.t==="frontier") ? 12 : 14;
-    s+=`<g><circle cx="${c.x}" cy="${c.y}" r="${r}" fill="${col}" stroke="${stroke}" stroke-width="3"/>`;
-    // icona tipo
-    let ico="";
-    if(c.t==="frontier")ico="🛂"; else if(c.t==="blue")ico="🔵"; else if(c.t==="arena")ico="⭐"; else if(c.t==="pickup")ico="📦";
-    if(ico) s+=`<text x="${c.x}" y="${c.y+(c.small?4:5)}" text-anchor="middle" font-size="${c.small?12:16}">${ico}</text>`;
-    // etichetta città — posizione personalizzabile con c.lab={dx,dy,a} per le zone affollate
-    if(c.city && c.t!=="frontier"){
-      const L=c.lab||{};
-      const lx=c.x+(L.dx||0);
-      const ly=(L.dy!==undefined)?(c.y+L.dy):(c.y-r-5);
-      s+=`<text x="${lx}" y="${ly}" text-anchor="${L.a||"middle"}" font-size="${c.small?13:14}" font-weight="800" fill="#111" stroke="#fff" stroke-width="3" paint-order="stroke">${citta(c.city)}</text>`;
+    else if(c.t==="blue"){col="#2E77D0";stroke="#13407a";txt="#fff";}
+    else if(c.t==="arena"){col="#C0392B";stroke="#7d1f15";txt="#fff";}
+    else if(c.t==="pickup"){col="#1f8a3b";stroke="#0f5a23";txt="#fff";}
+    s+=`<g>`;
+    // evidenzia la nazione dove il giocatore di turno deve consegnare
+    if(destEvid && c.n===destEvid){
+      s+=`<rect x="${q.x-7}" y="${q.y-7}" width="${CW+14}" height="${CH+14}" rx="18" fill="none" stroke="${players[turno].col}" stroke-width="5" stroke-dasharray="10 7">
+            <animate attributeName="opacity" values="1;.25;1" dur="1.4s" repeatCount="indefinite"/>
+          </rect>`;
     }
+    s+=`<rect x="${q.x}" y="${q.y}" width="${CW}" height="${CH}" rx="14" fill="${col}" stroke="${stroke}" stroke-width="4"/>`;
+    // numero progressivo: rende evidente l'ordine del percorso
+    s+=`<circle cx="${q.x+21}" cy="${q.y+21}" r="14" fill="#fff" stroke="${stroke}" stroke-width="2.5"/>`;
+    s+=`<text x="${q.x+21}" y="${q.y+26}" text-anchor="middle" font-size="15" font-weight="800" fill="#1a1a2e">${i+1}</text>`;
+    // bandierina della nazione
+    s+=flagSVG(c.n, q.x+CW-50, q.y+8, 42, 27);
+    // merci prelevabili
+    if(c.goods) s+=`<text x="${q.x+CW/2-8}" y="${q.y+29}" text-anchor="middle" font-size="19">${c.goods.map(g=>MERCI[g]).join("")}</text>`;
+    // icona + nome
+    let ico="";
+    if(c.t==="frontier")ico="🛂 "; else if(c.t==="blue")ico="🔵 "; else if(c.t==="arena")ico="⭐ "; else if(c.t==="pickup")ico="📦 ";
+    const nome=(c.t==="frontier")?tr("Frontiera","Border"):citta(c.city);
+    const fs=(ico+nome).length>12?19:23;
+    s+=`<text x="${q.cx}" y="${q.y+68}" text-anchor="middle" font-size="${fs}" font-weight="800" fill="${txt}">${ico}${nome}</text>`;
+    // nazione (per le frontiere: verso quale paese si entra)
+    const sotto=(c.t==="frontier")?("→ "+naz(c.n)):naz(c.n);
+    s+=`<text x="${q.cx}" y="${q.y+96}" text-anchor="middle" font-size="16" font-style="italic" fill="${txt}" opacity=".85">${sotto}</text>`;
     s+=`</g>`;
   });
-  // pedine (camioncini) — disegna prima gli altri, poi il giocatore di turno (così sta sopra)
+  // pedine (camioncini) — nello spazio sotto la casella; il giocatore di turno sta sopra
   const ordine=[...players.keys()].sort((a,b)=>(a===turno?1:0)-(b===turno?1:0));
   ordine.forEach((pi)=>{
     const p=players[pi];
-    const c=CELLE[p.pos];
-    const samecell=players.filter(q=>q.pos===p.pos);
+    const q=cellXY(p.pos);
+    const samecell=players.filter(z=>z.pos===p.pos);
     const idx=samecell.indexOf(p);
     // griglia compatta: max 3 camion per fila, così la partenza resta leggibile
     const row=Math.floor(idx/3), col=idx%3;
     const inRow=Math.min(3, samecell.length-row*3);
-    const off=(col-(inRow-1)/2)*26;
-    const x=c.x+off, y=c.y+36+row*25;
+    const off=(col-(inRow-1)/2)*30;
+    const x=q.cx+off, y=q.y+CH+22+row*26;
     const attivo=(pi===turno);
     s+=`<g>`;
     if(attivo){
@@ -514,11 +762,13 @@ function cur(){return players[turno];}
 
 function iniziaTurno(){
   ctx={};
+  salvaPartita();
   const p=cur();
   document.getElementById("dadoView").textContent="–";
   document.getElementById("actions").innerHTML="";
   bannerTurno();
   renderGiocatore(); renderScore(); disegnaMappa();
+  vista('pan');   // a inizio turno si agisce dal pannello (dado)
 
   if(p.skip){
     p.skip=false;
@@ -554,6 +804,7 @@ function risolviMovimento(d){
   const p=cur();
   ctx.roll=d;
   log(()=>tr(`🎲 ${p.nome} tira un ${d}.`,`🎲 ${p.nome} rolls a ${d}.`));
+  vista('tab');   // durante il movimento si guarda il tabellone a tutto schermo
   // cerca prima frontiera nel percorso
   let frontIdx=-1, passi=0;
   for(let s=1;s<=d;s++){
@@ -561,18 +812,29 @@ function risolviMovimento(d){
     if(CELLE[idx].t==="frontier"){frontIdx=idx;passi=s;break;}
   }
   if(frontIdx>=0){
-    p.pos=frontIdx; disegnaMappa();
     const resto=d-passi;
-    log(()=>tr(`🛂 ${p.nome} arriva alla frontiera con ${naz(CELLE[frontIdx].n)}.`,`🛂 ${p.nome} reaches the border with ${naz(CELLE[frontIdx].n)}.`));
-    setTimeout(()=>dadoDoganale(resto),700);
+    muoviAnimato(p,passi,()=>{
+      log(()=>tr(`🛂 ${p.nome} arriva alla frontiera con ${naz(CELLE[frontIdx].n)}.`,`🛂 ${p.nome} reaches the border with ${naz(CELLE[frontIdx].n)}.`));
+      setTimeout(()=>dadoDoganale(resto),500);
+    });
   }else{
-    muoviSemplice(p,d);
-    disegnaMappa();
-    setTimeout(()=>arrivo(),600);
+    muoviAnimato(p,d,()=>arrivo());
   }
 }
 
 function muoviSemplice(p,k){ p.pos=(p.pos+k)%N; }
+
+// Movimento animato: il camioncino avanza una casella alla volta
+function muoviAnimato(p,k,fine){
+  if(k<=0){ disegnaMappa(); fine(); return; }
+  let fatti=0;
+  const step=()=>{
+    p.pos=(p.pos+1)%N; fatti++;
+    disegnaMappa(); beep(560,.05);
+    if(fatti<k) setTimeout(step,270); else setTimeout(fine,380);
+  };
+  step();
+}
 
 function dadoDoganale(resto){
   const p=cur();
@@ -629,10 +891,7 @@ function cambiaDomandaDogana(resto){
 function continuaDopoFrontiera(resto,molt){
   chiudiModale();
   const p=cur();
-  const passi=resto*molt;
-  if(passi>0){ muoviSemplice(p,passi); }
-  disegnaMappa();
-  setTimeout(()=>arrivo(),500);
+  muoviAnimato(p,resto*molt,()=>arrivo());
 }
 
 function chiudiModaleEArrivo(){ chiudiModale(); disegnaMappa(); setTimeout(()=>arrivo(),300); }
@@ -665,7 +924,7 @@ function ilMomento(fine){
       chiudiModale(); renderGiocatore(); renderScore(); fine(); return;
     }
     const pi=ordine[k], pl=players[pi];
-    const q=locQ(DOM_GENERALI[Math.floor(Math.random()*DOM_GENERALI.length)]);
+    const q=locQ(pickFromPool(DOM_GENERALI));
     mostraDomanda(tr(`⭐ IL MOMENTO — Risponde: ${pl.nome}`,`⭐ THE MOMENT — Answering: ${pl.nome}`), q, (ok)=>{
       if(ok){
         pl.cultura+=5;
@@ -694,16 +953,20 @@ function pannelloAzioni(){
     log(()=>tr(`🔵 ${p.nome} è in una Zona di Libero Scambio (${citta(c.city)}): +3 Integrazione.`,`🔵 ${p.nome} is in a Free Trade Zone (${citta(c.city)}): +3 Integration.`));
   }
 
-  // Prelievo merci
+  // Prelievo merci (con limite di carico)
   if(c.goods){
-    c.goods.forEach(g=>{
-      if(!p.inv.includes(g)){
-        html+=`<button class="verde" onclick="preleva('${g}')">${tr("📦 Preleva","📦 Pick up")} ${MERCI[g]} ${merce(g)}</button>`;
-      }
-    });
+    if(p.inv.length>=MAX_CARICO){
+      html+=`<div style="font-weight:600;">${tr(`🚛 Camion pieno (${MAX_CARICO} merci): non puoi caricare altro.`,`🚛 Truck full (${MAX_CARICO} goods): you can't load more.`)}</div>`;
+    }else{
+      c.goods.forEach(g=>{
+        if(!p.inv.includes(g)){
+          html+=`<button class="verde" onclick="preleva('${g}')">${tr("📦 Preleva","📦 Pick up")} ${MERCI[g]} ${merce(g)}</button>`;
+        }
+      });
+    }
   }
   // Merce gratis nelle caselle blu
-  if(c.t==="blue" && !ctx.blueGood){
+  if(c.t==="blue" && !ctx.blueGood && p.inv.length<MAX_CARICO){
     html+=`<div style="font-weight:600;margin-top:4px;">${tr("🎁 Scegli una merce gratis:","🎁 Choose a free good:")}</div>`;
     Object.keys(MERCI).forEach(g=>{
       if(!p.inv.includes(g)) html+=`<button class="ghost" onclick="preleva('${g}',true)">${MERCI[g]} ${merce(g)}</button>`;
@@ -721,8 +984,8 @@ function pannelloAzioni(){
       }
     });
   }
-  // Jolly: ruba una merce a un avversario
-  if(p.jolly>0 && !ctx.rubaDone){
+  // Jolly: ruba una merce a un avversario (se c'è posto sul camion)
+  if(p.jolly>0 && !ctx.rubaDone && p.inv.length<MAX_CARICO){
     const rubabili=players.some((o,oi)=>oi!==turno && o.inv.some(g=>!p.inv.includes(g)));
     if(rubabili) html+=`<button class="ghost" onclick="apriRuba()">${tr("🃏 Usa Jolly: ruba una merce","🃏 Use Joker: steal a good")}</button>`;
   }
@@ -734,6 +997,7 @@ function pannelloAzioni(){
   html+=`<button class="rosso" onclick="terminaTurno()" style="margin-top:6px;">${tr("➡️ Termina il turno","➡️ End turn")}</button>`;
   div.innerHTML=html;
   renderGiocatore(); renderScore();
+  vista('pan');   // arrivato sulla casella: si agisce dal pannello
 }
 
 /* ---- Scambio merci (caselle blu, con un altro giocatore presente) ---- */
@@ -795,6 +1059,7 @@ function rubaMerce(oi,g){
 
 function preleva(g,gratis){
   const p=cur();
+  if(p.inv.length>=MAX_CARICO) return;
   if(!p.inv.includes(g)) p.inv.push(g);
   log(()=>tr(`📦 ${p.nome} carica ${MERCI[g]} ${merce(g)}${gratis?" (gratis)":""}.`,`📦 ${p.nome} loads ${MERCI[g]} ${merce(g)}${gratis?" (free)":""}.`));
   beep(720,.06);
@@ -814,8 +1079,33 @@ function consegna(){
     setTimeout(finePartita,400);
     return;
   }
-  p.contratto=nuovoContratto();
-  log(()=>tr(`📝 Nuovo contratto per ${p.nome}.`,`📝 New contract for ${p.nome}.`));
+  p.contratto=null;
+  renderGiocatore();
+  scegliContratto();
+}
+
+/* ---- Scelta del nuovo contratto tra due proposte ---- */
+function scegliContratto(){
+  const a=nuovoContratto();
+  let b=nuovoContratto(), tent=0;
+  while(b.good===a.good && b.dest===a.dest && tent++<10) b=nuovoContratto();
+  ctx.proposte=[a,b];
+  const btn=x=>{
+    const c=ctx.proposte[x];
+    return `<button onclick="setContratto(${x})">${tr("Porta","Deliver")} ${MERCI[c.good]} ${merce(c.good)} → <b>${naz(c.dest)}</b></button>`;
+  };
+  document.getElementById("modal").innerHTML=`
+    <h2>📝 ${tr("Scegli il prossimo contratto","Choose your next contract")}</h2>
+    <p style="font-size:1.15rem;">${tr("Quale trasporto accetti?","Which delivery do you accept?")}</p>
+    <div class="opzioni">${btn(0)}${btn(1)}</div>`;
+  document.getElementById("overlay").style.display="flex";
+}
+function setContratto(i){
+  const p=cur();
+  p.contratto=ctx.proposte[i];
+  log(()=>tr(`📝 ${p.nome} sceglie il contratto: porta ${MERCI[p.contratto.good]} ${merce(p.contratto.good)} a ${naz(p.contratto.dest)}.`,`📝 ${p.nome} picks the contract: deliver ${MERCI[p.contratto.good]} ${merce(p.contratto.good)} to ${naz(p.contratto.dest)}.`));
+  chiudiModale();
+  disegnaMappa(); // aggiorna l'evidenziazione della destinazione
   pannelloAzioni();
 }
 
@@ -842,6 +1132,7 @@ function finalizzaTurno(){
    FINE PARTITA
    ============================================================ */
 function finePartita(){
+  cancellaSalvataggio();
   // punteggio: Integrazione (contratti) + Cultura; a parità vince chi ha più contratti
   const cls=[...players].sort((a,b)=>(b.integrazione+b.cultura)-(a.integrazione+a.cultura) || b.fatti-a.fatti);
   const w=cls[0];
@@ -940,9 +1231,17 @@ function mostraRegole(){
   document.getElementById("overlay").style.display="flex";
 }
 
+/* Le domande non si ripetono finché il mazzo non è esaurito */
+const domandeUsate=new Set();
+function pickFromPool(arr){
+  let fresche=arr.filter(q=>!domandeUsate.has(q.q[0]));
+  if(!fresche.length){ arr.forEach(q=>domandeUsate.delete(q.q[0])); fresche=arr; } // mazzo esaurito: si rimescola
+  const q=fresche[Math.floor(Math.random()*fresche.length)];
+  domandeUsate.add(q.q[0]);
+  return q;
+}
 function pickDomandaNazione(naz){
-  const arr=DOM_NAZIONE[naz]||DOM_GENERALI;
-  return arr[Math.floor(Math.random()*arr.length)];
+  return pickFromPool(DOM_NAZIONE[naz]||DOM_GENERALI);
 }
 
 /* ============================================================
@@ -956,7 +1255,7 @@ function renderGiocatore(){
   div.innerHTML=`
     <h3 style="margin-top:0;color:${p.col}">🚚 ${p.nome}</h3>
     <div class="contratto">📄 <b>${tr("Contratto attivo:","Active contract:")}</b><br>${tr("Porta","Deliver")} ${needed}</div>
-    <div style="margin-top:8px;"><b>${tr("🚛 Carico:","🚛 Cargo:")}</b> ${inv}</div>
+    <div style="margin-top:8px;"><b>${tr("🚛 Carico","🚛 Cargo")} (${p.inv.length}/${MAX_CARICO}):</b> ${inv}</div>
     <div style="margin-top:6px;">${tr("🃏 Jolly:","🃏 Jokers:")} <b>${p.jolly}</b> &nbsp;|&nbsp; ${tr("✅ Contratti:","✅ Contracts:")} <b>${p.fatti}/3</b></div>
     <div>${tr("⭐ Integrazione:","⭐ Integration:")} <b>${p.integrazione}</b> &nbsp;|&nbsp; ${tr("📚 Cultura:","📚 Culture:")} <b>${p.cultura}</b></div>`;
 }
@@ -984,7 +1283,8 @@ function log(fn){
 }
 function renderLog(){
   const l=document.getElementById("log"); if(!l) return;
-  l.innerHTML=logEntries.map(fn=>`<p>${fn()}</p>`).join("");
+  // try/catch: alcune voci vecchie possono riferirsi a uno stato ormai cambiato
+  l.innerHTML=logEntries.map(fn=>{try{return `<p>${fn()}</p>`;}catch(e){return "";}}).join("");
   l.scrollTop=l.scrollHeight;
 }
 
