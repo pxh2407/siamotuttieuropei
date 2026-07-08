@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Siamo Tutti Europei — con Computer</title>
+<title>Siamo Tutti Europei</title>
 <style>
   :root{
     --blu:#003399;        /* blu bandiera UE */
@@ -109,18 +109,6 @@
 
   <h3 id="hNomi"></h3>
   <div id="righeNomi"></div>
-
-  <div style="margin-top:14px;padding:10px 14px;background:#eef3ff;border:2px solid var(--blu-chiaro);border-radius:10px;">
-    <label style="font-size:1.05rem;font-weight:600;"><input type="checkbox" id="botOn" checked> <span id="lblBot"></span></label>
-    <div style="margin-top:8px;">
-      <span id="lblBotDiff" style="font-weight:600;"></span>
-      <select id="botDiffSel" style="font-size:1rem;padding:.3em;border-radius:6px;">
-        <option value="0.45" id="optFacile"></option>
-        <option value="0.65" selected id="optNormale"></option>
-        <option value="0.85" id="optDifficile"></option>
-      </select>
-    </div>
-  </div>
 
   <div style="margin-top:18px;display:flex;gap:12px;align-items:center;flex-wrap:wrap;">
     <button id="btnStart" class="oro" style="font-size:1.25rem;padding:.7em 1.6em;" onclick="avviaPartita()"></button>
@@ -451,7 +439,6 @@ function regoleListHTML(){
      <li><b>📦 Caselle verdi (città):</b> qui puoi <b>prelevare le merci</b> prodotte dalla nazione (massimo <b>3 merci</b> sul camion).</li>
      <li><b>🎯 Destinazione:</b> le caselle della nazione dove devi consegnare sono <b>evidenziate</b> con un bordo lampeggiante del tuo colore; dopo ogni consegna <b>scegli il nuovo contratto</b> tra due proposte.</li>
      <li><b>💾 Salvataggio:</b> la partita si salva da sola a ogni turno; se chiudi la pagina, alla riapertura puoi riprenderla.</li>
-     <li><b>🤖 Computer:</b> se attivato, "Europa" gioca da solo il suo turno: tira il dado, risponde alle domande (può sbagliare!) e consegna le merci. Tu guarda i suoi movimenti sul tabellone e nel diario.</li>
      <li><b>🔵 Caselle blu</b> (Milano, Riga, Bruxelles): bonus Integrazione + una merce gratis; se c'è un altro giocatore potete <b>scambiarvi le merci</b>.</li>
      <li><b>🗺 Schermo:</b> il gioco passa da solo dal tabellone (durante il movimento) al pannello (quando devi agire); col pulsante <b>🗺/🎛</b> in alto cambi vista quando vuoi.</li>
      <li><b>⭐ Caselle Arena (rosse) o un "6" col dado:</b> scatta <b>Il Momento</b>: quiz per <b>tutti i giocatori</b>! +5 Cultura a chi indovina; il primo che indovina vince un Jolly.</li>
@@ -460,7 +447,6 @@ function regoleListHTML(){
     `<li><b>Goal:</b> complete <b>3 contracts</b> by delivering the requested good to the destination country.</li>
      <li><b>🎯 Destination:</b> the squares of the country where you must deliver are <b>highlighted</b> with a blinking border in your colour; after each delivery you <b>choose your next contract</b> out of two offers.</li>
      <li><b>💾 Autosave:</b> the game saves itself every turn; if you close the page you can resume it later.</li>
-     <li><b>🤖 Computer:</b> if enabled, "Europa" plays its own turn: it rolls the dice, answers questions (it can be wrong!) and delivers goods. Watch its moves on the board and in the log.</li>
      <li><b>🎲 Roll the dice</b> to move your little truck along Europe's roads.</li>
      <li><b>⏱ Timer:</b> you have <b>30 seconds</b> to answer each question.</li>
      <li><b>🛂 Borders (gold squares):</b> you stop and roll the <b>Customs Die</b> → 1-4 = culture question (if wrong you miss a turn), 5 = Schengen (pass and double your remaining move), 6 = Joker (pass and get a Joker).</li>
@@ -483,11 +469,6 @@ function applyLang(){
   setText('hNomi', tr("Nomi dei giocatori","Player names"));
   setText('btnStart', tr("▶ Inizia la partita","▶ Start the game"));
   setText('btnResume', tr("💾 Riprendi la partita salvata","💾 Resume saved game"));
-  setText('lblBot', tr('🤖 Gioca anche il computer ("Europa")','🤖 The computer also plays ("Europa")'));
-  setText('lblBotDiff', tr("Bravura del computer:","Computer skill:"));
-  setText('optFacile', tr("Facile (sbaglia spesso)","Easy (often wrong)"));
-  setText('optNormale', tr("Normale","Normal"));
-  setText('optDifficile', tr("Difficile (quasi infallibile)","Hard (nearly flawless)"));
   setText('lblSuoni', tr("🔊 Suoni","🔊 Sounds"));
   setText('sumRegole', tr("📖 Come si gioca (regole)","📖 How to play (rules)"));
   setText('ulRegole', regoleListHTML());
@@ -550,9 +531,6 @@ let turno = 0;            // indice giocatore corrente
 let ctx = {};            // contesto del turno in corso
 let audio = true;
 let bloccaDado = false;
-let botDiff = 0.65;          // probabilità che il computer risponda bene
-let partitaFinita = false;   // blocca le azioni automatiche a partita conclusa
-const BOT_NOME = "🤖 Europa";
 
 /* ============================================================
    SALVATAGGIO AUTOMATICO (localStorage)
@@ -560,15 +538,14 @@ const BOT_NOME = "🤖 Europa";
    della pagina compare il pulsante "Riprendi la partita".
    ============================================================ */
 function salvaPartita(){
-  try{ localStorage.setItem("steSalvataggioBot2", JSON.stringify({players,turno,lang,botDiff})); }catch(e){}
+  try{ localStorage.setItem("steSalvataggio2", JSON.stringify({players,turno,lang})); }catch(e){}
 }
-function cancellaSalvataggio(){ try{ localStorage.removeItem("steSalvataggioBot2"); }catch(e){} }
+function cancellaSalvataggio(){ try{ localStorage.removeItem("steSalvataggio2"); }catch(e){} }
 function riprendiPartita(){
   try{
-    const s=JSON.parse(localStorage.getItem("steSalvataggioBot2"));
+    const s=JSON.parse(localStorage.getItem("steSalvataggio2"));
     if(!s || !s.players || !s.players.length) throw 0;
     players=s.players; turno=s.turno||0; nGiocatori=players.length; lang=s.lang||'it';
-    botDiff=s.botDiff||0.65;
     audio=document.getElementById("audioOn").checked;
     document.getElementById("setup").style.display="none";
     document.getElementById("gioco").style.display="block";
@@ -594,7 +571,7 @@ function initSetup(){
   }
   renderNum(); refreshNomi(); applyLang();
   // se c'è una partita salvata, offri di riprenderla
-  try{ if(localStorage.getItem("steSalvataggioBot2")) document.getElementById("resumeBox").style.display="block"; }catch(e){}
+  try{ if(localStorage.getItem("steSalvataggio2")) document.getElementById("resumeBox").style.display="block"; }catch(e){}
 }
 function renderNum(){
   [...document.getElementById("numGiocatori").children].forEach((b,i)=>{
@@ -622,15 +599,6 @@ function avviaPartita(){
       integrazione:0, cultura:0, jolly:0, skip:false
     });
   }
-  // giocatore computer
-  if(document.getElementById("botOn").checked){
-    botDiff=parseFloat(document.getElementById("botDiffSel").value)||0.65;
-    players.push({
-      nome:BOT_NOME, col:COLORI[nGiocatori]||"#455A64", pos:0, inv:[],
-      contratto:nuovoContratto(), fatti:0,
-      integrazione:0, cultura:0, jolly:0, skip:false, bot:true
-    });
-  }
   document.getElementById("setup").style.display="none";
   document.getElementById("gioco").style.display="block";
   disegnaMappa();
@@ -656,9 +624,9 @@ function nuovoContratto(){
 }
 
 /* ============================================================
-   DISEGNO TABELLONE — serpentina: 4 file da 7 caselle grandi.
+   DISEGNO TABELLONE — serpentina: 5 file da 11 caselle grandi.
    L'ordine delle caselle è quello dell'array CELLE; la posizione
-   sullo schermo è calcolata da cellXY(i), non più dalla mappa.
+   sullo schermo è calcolata da cellXY(i).
    ============================================================ */
 const COLS=11, CW=160, CH=120, PX=172, PY=210, MX=60, MY=56;
 function cellXY(i){
@@ -811,11 +779,6 @@ function iniziaTurno(){
   }
   bloccaDado=false;
   document.getElementById("btnDado").disabled=false;
-  // il computer tira il dado da solo
-  if(p.bot){
-    document.getElementById("btnDado").disabled=true;
-    setTimeout(()=>{ if(!partitaFinita && players[turno]===p && !bloccaDado) tiraDado(); },1400);
-  }
 }
 
 function prossimoTurno(){
@@ -893,8 +856,6 @@ function dadoDoganale(resto){
 // Mostra la domanda di dogana (estratta per poter "cambiare domanda" col Jolly)
 function domandaDogana(resto,evitaQ){
   const p=cur();
-  // il computer, se ha un Jolly, lo usa per passare senza rispondere
-  if(p.bot && p.jolly>0){ usaJollyDogana(resto); return; }
   const nazi=CELLE[p.pos].n;
   let qRaw=pickDomandaNazione(nazi);
   // se si è usato un Jolly per cambiare domanda, evita di ripresentare la stessa
@@ -911,7 +872,7 @@ function domandaDogana(resto,evitaQ){
   mostraDomanda(tr(`🛂 Dogana — ${naz(nazi)}`,`🛂 Customs — ${naz(nazi)}`), q, (ok)=>{
     if(ok){ p.cultura+=5; log(()=>tr(`✅ Risposta esatta! ${p.nome} passa la frontiera (+5 Cultura).`,`✅ Correct! ${p.nome} crosses the border (+5 Culture).`)); continuaDopoFrontiera(resto,1); }
     else { log(()=>tr(`❌ Risposta errata: ${p.nome} resta fermo e salta il prossimo turno.`,`❌ Wrong: ${p.nome} stays put and misses the next turn.`)); p.skip=true; chiudiModaleEArrivo(); }
-  }, extra, p);
+  }, extra);
 }
 
 function usaJollyDogana(resto){
@@ -973,7 +934,7 @@ function ilMomento(fine){
         log(()=>tr(`❌ ${pl.nome} non indovina.`,`❌ ${pl.nome} misses.`));
       }
       k++; next();
-    }, "", pl);
+    });
   }
   next();
 }
@@ -1037,30 +998,6 @@ function pannelloAzioni(){
   div.innerHTML=html;
   renderGiocatore(); renderScore();
   vista('pan');   // arrivato sulla casella: si agisce dal pannello
-  // il computer decide da solo (i pulsanti restano visibili ma non cliccabili)
-  if(p.bot){ div.style.pointerEvents="none"; setTimeout(botAzioni,1100); }
-  else div.style.pointerEvents="auto";
-}
-
-/* ---- Turno automatico del computer ----
-   Ogni azione richiama pannelloAzioni, che riprogramma botAzioni:
-   le condizioni via via si esauriscono e si arriva a terminaTurno. */
-function botAzioni(){
-  if(partitaFinita) return;
-  const p=cur();
-  if(!p || !p.bot) return;
-  const c=CELLE[p.pos];
-  // 1) consegna il contratto se possibile
-  if(p.contratto && c.n===p.contratto.dest && p.inv.includes(p.contratto.good)){ consegna(); return; }
-  // 2) preleva la merce del contratto se è prodotta qui
-  if(c.goods && p.contratto && c.goods.includes(p.contratto.good) && !p.inv.includes(p.contratto.good) && p.inv.length<MAX_CARICO){ preleva(p.contratto.good); return; }
-  // 3) merce gratis nelle caselle blu: quella del contratto, altrimenti una che non ha
-  if(c.t==="blue" && !ctx.blueGood && p.inv.length<MAX_CARICO){
-    const g=(p.contratto && !p.inv.includes(p.contratto.good)) ? p.contratto.good : Object.keys(MERCI).find(x=>!p.inv.includes(x));
-    if(g){ preleva(g,true); return; }
-  }
-  // 4) fine del turno
-  terminaTurno();
 }
 
 /* ---- Scambio merci (caselle blu, con un altro giocatore presente) ---- */
@@ -1162,16 +1099,6 @@ function scegliContratto(){
     <p style="font-size:1.15rem;">${tr("Quale trasporto accetti?","Which delivery do you accept?")}</p>
     <div class="opzioni">${btn(0)}${btn(1)}</div>`;
   document.getElementById("overlay").style.display="flex";
-  // il computer sceglie da solo: preferisce la merce che ha già a bordo
-  if(cur().bot){
-    document.querySelector("#modal .opzioni").style.pointerEvents="none";
-    setTimeout(()=>{
-      if(partitaFinita || !ctx.proposte) return;
-      const p=cur();
-      const i=p.inv.includes(ctx.proposte[0].good)?0:(p.inv.includes(ctx.proposte[1].good)?1:Math.floor(Math.random()*2));
-      setContratto(i);
-    },1600);
-  }
 }
 function setContratto(i){
   const p=cur();
@@ -1205,7 +1132,6 @@ function finalizzaTurno(){
    FINE PARTITA
    ============================================================ */
 function finePartita(){
-  partitaFinita=true;
   cancellaSalvataggio();
   // punteggio: Integrazione (contratti) + Cultura; a parità vince chi ha più contratti
   const cls=[...players].sort((a,b)=>(b.integrazione+b.cultura)-(a.integrazione+a.cultura) || b.fatti-a.fatti);
@@ -1233,7 +1159,7 @@ function finePartita(){
    MODALI
    ============================================================ */
 let qTimer=null;
-function mostraDomanda(titolo,q,cb,extraHtml,rispondente){
+function mostraDomanda(titolo,q,cb,extraHtml){
   clearInterval(qTimer);
   const SECS=30; // cronometro della prova (come da regolamento)
   const ov=document.getElementById("overlay");
@@ -1272,17 +1198,6 @@ function mostraDomanda(titolo,q,cb,extraHtml,rispondente){
       chiudi(ok,false);
     };
   });
-  // risposta automatica del computer (il pubblico guarda, i clic sono disattivati)
-  if(rispondente && rispondente.bot){
-    m.querySelectorAll(".opzioni").forEach(d=>d.style.pointerEvents="none");
-    setTimeout(()=>{
-      const bs=m.querySelectorAll(".opzioni button[data-i]");
-      if(!bs.length || bs[0].disabled) return;   // già risposto o modale cambiata
-      let i=q.a;
-      if(Math.random()>=botDiff){ do{ i=Math.floor(Math.random()*q.o.length); }while(i===q.a && q.o.length>1); }
-      bs[i].onclick();
-    },2300);
-  }
 }
 
 function mostraImprevisto(imp){
@@ -1302,11 +1217,6 @@ function mostraImprevisto(imp){
     chiudiModale();
     finalizzaTurno();
   };
-  // il computer conferma da solo l'imprevisto
-  if(p.bot){
-    document.getElementById("okImp").style.pointerEvents="none";
-    setTimeout(()=>{ const b=document.getElementById("okImp"); if(b && b.onclick) b.onclick(); },1900);
-  }
 }
 
 function chiudiModale(){ clearInterval(qTimer); document.getElementById("overlay").style.display="none"; }
