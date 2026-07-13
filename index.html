@@ -150,7 +150,7 @@
   <div class="layout">
     <div class="mappa-box">
       <div id="boardBar"></div>
-      <svg id="board" viewBox="0 0 2020 1110" aria-label="Tabellone di gioco"></svg>
+      <svg id="board" viewBox="0 0 2344 1310" aria-label="Tabellone di gioco"></svg>
     </div>
 
     <div class="pannello">
@@ -216,7 +216,9 @@ const CITY_T = {                                         // nomi città (solo do
   Marsiglia:"Marseille", Barcellona:"Barcelona", Siviglia:"Seville", Ginevra:"Geneva",
   Berna:"Bern", Zurigo:"Zurich",
   Lisbona:"Lisbon", Copenaghen:"Copenhagen", Varsavia:"Warsaw", Breslavia:"Wrocław",
-  Danzica:"Gdańsk", Tolosa:"Toulouse", Strasburgo:"Strasbourg", Francoforte:"Frankfurt"
+  Danzica:"Gdańsk", Tolosa:"Toulouse", Strasburgo:"Strasbourg", Francoforte:"Frankfurt",
+  Basilea:"Basel", Salisburgo:"Salzburg", Cracovia:"Krakow", "L'Aia":"The Hague",
+  Gand:"Ghent"
 };
 function naz(n){ return NAZ_T[n]?NAZ_T[n][_k()]:n; }
 function merce(g){ return MERCE_T[g]?MERCE_T[g][_k()]:g; }
@@ -231,65 +233,86 @@ function locQ(q){ // localizza una domanda e mescola l'ordine delle risposte
 // Caselle del percorso: {n=nazione, t=tipo, city, goods?}
 // tipo: normal | frontier | blue | arena | pickup
 // La posizione sullo schermo è calcolata da cellXY(i): l'ordine dell'array È il percorso.
-// Giro d'Europa: Italia → Svizzera → Germania → Polonia → Baltici → Danimarca → Norvegia
-// → Germania → Paesi Bassi → Belgio → Francia → Spagna → Portogallo → ritorno via Francia,
-// Svizzera e Austria fino a Venezia, poi si riparte da Roma.
+// EQUITÀ: ogni nazione ha esattamente 4 città e una sola dogana d'ingresso (15 blocchi).
+// Giro d'Europa: Italia → Svizzera → Austria → Germania → Polonia → Lituania → Lettonia
+// → Estonia → Danimarca → Norvegia → Paesi Bassi → Belgio → Francia → Spagna → Portogallo
+// → nave verso l'Italia, si riparte da Roma.
 const CELLE = [
   {n:"Italia",      t:"pickup",  city:"Roma",       goods:["Vino","Formaggio"]},
   {n:"Italia",      t:"normal",  city:"Napoli"},
   {n:"Italia",      t:"blue",    city:"Milano"},
+  {n:"Italia",      t:"normal",  city:"Venezia"},
   {n:"Svizzera",    t:"frontier",city:"Frontiera"},
   {n:"Svizzera",    t:"pickup",  city:"Zurigo",     goods:["Orologi"]},
+  {n:"Svizzera",    t:"normal",  city:"Basilea"},
   {n:"Svizzera",    t:"normal",  city:"Berna"},
+  {n:"Svizzera",    t:"normal",  city:"Ginevra"},
+  {n:"Austria",     t:"frontier",city:"Frontiera"},
+  {n:"Austria",     t:"pickup",  city:"Innsbruck",  goods:["Legname"]},
+  {n:"Austria",     t:"normal",  city:"Salisburgo"},
+  {n:"Austria",     t:"normal",  city:"Vienna"},
+  {n:"Austria",     t:"normal",  city:"Graz"},
   {n:"Germania",    t:"frontier",city:"Frontiera"},
   {n:"Germania",    t:"normal",  city:"Monaco"},
+  {n:"Germania",    t:"normal",  city:"Francoforte"},
+  {n:"Germania",    t:"normal",  city:"Colonia"},
   {n:"Germania",    t:"arena",   city:"Berlino",    goods:["Auto"]},
   {n:"Polonia",     t:"frontier",city:"Frontiera"},
   {n:"Polonia",     t:"normal",  city:"Breslavia"},
+  {n:"Polonia",     t:"normal",  city:"Cracovia"},
   {n:"Polonia",     t:"arena",   city:"Varsavia"},
   {n:"Polonia",     t:"pickup",  city:"Danzica",    goods:["Grano"]},
   {n:"Lituania",    t:"frontier",city:"Frontiera"},
   {n:"Lituania",    t:"normal",  city:"Vilnius"},
+  {n:"Lituania",    t:"normal",  city:"Kaunas"},
+  {n:"Lituania",    t:"normal",  city:"Šiauliai"},
+  {n:"Lituania",    t:"normal",  city:"Klaipėda"},
   {n:"Lettonia",    t:"frontier",city:"Frontiera"},
+  {n:"Lettonia",    t:"normal",  city:"Liepāja"},
+  {n:"Lettonia",    t:"normal",  city:"Ventspils"},
+  {n:"Lettonia",    t:"normal",  city:"Jūrmala"},
   {n:"Lettonia",    t:"blue",    city:"Riga"},
   {n:"Estonia",     t:"frontier",city:"Frontiera"},
+  {n:"Estonia",     t:"normal",  city:"Pärnu"},
+  {n:"Estonia",     t:"normal",  city:"Tartu"},
+  {n:"Estonia",     t:"normal",  city:"Narva"},
   {n:"Estonia",     t:"normal",  city:"Tallinn"},
   {n:"Danimarca",   t:"frontier",city:"Frontiera"},
   {n:"Danimarca",   t:"normal",  city:"Copenaghen"},
+  {n:"Danimarca",   t:"normal",  city:"Odense"},
+  {n:"Danimarca",   t:"normal",  city:"Aarhus"},
+  {n:"Danimarca",   t:"normal",  city:"Aalborg"},
   {n:"Norvegia",    t:"frontier",city:"Frontiera"},
   {n:"Norvegia",    t:"pickup",  city:"Oslo",       goods:["Pesce"]},
-  {n:"Germania",    t:"frontier",city:"Frontiera"},
-  {n:"Germania",    t:"normal",  city:"Francoforte"},
-  {n:"Germania",    t:"normal",  city:"Colonia"},
+  {n:"Norvegia",    t:"normal",  city:"Stavanger"},
+  {n:"Norvegia",    t:"normal",  city:"Bergen"},
+  {n:"Norvegia",    t:"normal",  city:"Trondheim"},
   {n:"Paesi Bassi", t:"frontier",city:"Frontiera"},
   {n:"Paesi Bassi", t:"pickup",  city:"Amsterdam",  goods:["Fiori"]},
+  {n:"Paesi Bassi", t:"normal",  city:"Utrecht"},
+  {n:"Paesi Bassi", t:"normal",  city:"L'Aia"},
+  {n:"Paesi Bassi", t:"normal",  city:"Rotterdam"},
   {n:"Belgio",      t:"frontier",city:"Frontiera"},
   {n:"Belgio",      t:"normal",  city:"Anversa"},
+  {n:"Belgio",      t:"normal",  city:"Gand"},
+  {n:"Belgio",      t:"normal",  city:"Bruges"},
   {n:"Belgio",      t:"blue",    city:"Bruxelles"},
   {n:"Francia",     t:"frontier",city:"Frontiera"},
   {n:"Francia",     t:"normal",  city:"Strasburgo"},
   {n:"Francia",     t:"arena",   city:"Parigi",     goods:["Vino","Formaggio"]},
-  {n:"Francia",     t:"normal",  city:"Lione"},
-  {n:"Francia",     t:"normal",  city:"Marsiglia"},
   {n:"Francia",     t:"normal",  city:"Tolosa"},
+  {n:"Francia",     t:"normal",  city:"Marsiglia"},
   {n:"Spagna",      t:"frontier",city:"Frontiera"},
+  {n:"Spagna",      t:"pickup",  city:"Barcellona", goods:["Vino"]},
   {n:"Spagna",      t:"normal",  city:"Bilbao"},
   {n:"Spagna",      t:"normal",  city:"Madrid"},
   {n:"Spagna",      t:"normal",  city:"Siviglia"},
   {n:"Portogallo",  t:"frontier",city:"Frontiera"},
+  {n:"Portogallo",  t:"normal",  city:"Faro"},
   {n:"Portogallo",  t:"pickup",  city:"Lisbona",    goods:["Pesce"]},
+  {n:"Portogallo",  t:"normal",  city:"Coimbra"},
   {n:"Portogallo",  t:"pickup",  city:"Porto",      goods:["Vino"]},
-  {n:"Spagna",      t:"frontier",city:"Frontiera"},
-  {n:"Spagna",      t:"pickup",  city:"Barcellona", goods:["Vino"]},
-  {n:"Francia",     t:"frontier",city:"Frontiera"},
-  {n:"Francia",     t:"normal",  city:"Bordeaux"},
-  {n:"Svizzera",    t:"frontier",city:"Frontiera"},
-  {n:"Svizzera",    t:"normal",  city:"Ginevra"},
-  {n:"Austria",     t:"frontier",city:"Frontiera"},
-  {n:"Austria",     t:"normal",  city:"Vienna"},
-  {n:"Austria",     t:"pickup",  city:"Innsbruck",  goods:["Legname"]},
   {n:"Italia",      t:"frontier",city:"Frontiera"},
-  {n:"Italia",      t:"normal",  city:"Venezia"},
 ];
 const N = CELLE.length;
 const MAX_CARICO = 3;   // merci massime trasportabili sul camion
@@ -659,12 +682,12 @@ const BOT_NOME = "🤖 Europa";
    della pagina compare il pulsante "Riprendi la partita".
    ============================================================ */
 function salvaPartita(){
-  try{ localStorage.setItem("steSalvataggioBot2", JSON.stringify({players,turno,lang,botDiff})); }catch(e){}
+  try{ localStorage.setItem("steSalvataggioBot3", JSON.stringify({players,turno,lang,botDiff})); }catch(e){}
 }
-function cancellaSalvataggio(){ try{ localStorage.removeItem("steSalvataggioBot2"); }catch(e){} }
+function cancellaSalvataggio(){ try{ localStorage.removeItem("steSalvataggioBot3"); }catch(e){} }
 function riprendiPartita(){
   try{
-    const s=JSON.parse(localStorage.getItem("steSalvataggioBot2"));
+    const s=JSON.parse(localStorage.getItem("steSalvataggioBot3"));
     if(!s || !s.players || !s.players.length) throw 0;
     players=s.players; turno=s.turno||0; nGiocatori=players.length; lang=s.lang||'it';
     botDiff=s.botDiff||0.65;
@@ -693,7 +716,7 @@ function initSetup(){
   }
   renderNum(); refreshNomi(); applyLang();
   // se c'è una partita salvata, offri di riprenderla
-  try{ if(localStorage.getItem("steSalvataggioBot2")) document.getElementById("resumeBox").style.display="block"; }catch(e){}
+  try{ if(localStorage.getItem("steSalvataggioBot3")) document.getElementById("resumeBox").style.display="block"; }catch(e){}
 }
 function renderNum(){
   [...document.getElementById("numGiocatori").children].forEach((b,i)=>{
@@ -755,11 +778,11 @@ function nuovoContratto(){
 }
 
 /* ============================================================
-   DISEGNO TABELLONE — serpentina: 4 file da 7 caselle grandi.
+   DISEGNO TABELLONE — serpentina: 6 file da 13 caselle grandi.
    L'ordine delle caselle è quello dell'array CELLE; la posizione
-   sullo schermo è calcolata da cellXY(i), non più dalla mappa.
+   sullo schermo è calcolata da cellXY(i).
    ============================================================ */
-const COLS=11, CW=160, CH=120, PX=172, PY=210, MX=60, MY=56;
+const COLS=13, CW=160, CH=120, PX=172, PY=210, MX=60, MY=56;
 function cellXY(i){
   const row=Math.floor(i/COLS), k=i%COLS;
   const col=(row%2===0)?k:(COLS-1-k);          // le file dispari corrono da destra a sinistra
@@ -791,24 +814,20 @@ function disegnaMappa(){
   const svg=document.getElementById("board");
   let s="";
   // sfondo
-  s+=`<rect x="0" y="0" width="2020" height="1110" rx="18" fill="#dce9f8"/>`;
-  // strada: passa per i centri delle caselle; dall'ultima casella (in basso a destra)
-  // si ritorna alla partenza risalendo il bordo destro e percorrendo il bordo alto
+  s+=`<rect x="0" y="0" width="2344" height="1310" rx="18" fill="#dce9f8"/>`;
+  // strada: passa per i centri delle caselle; l'ultima casella (in basso a sinistra)
+  // ritorna alla partenza risalendo lungo il bordo sinistro
   const pts=[];
   for(let i=0;i<N;i++){const q=cellXY(i);pts.push(q.cx+","+q.cy);}
   const first=cellXY(0), last=cellXY(N-1);
-  pts.push(`1988,${last.cy}`,`1988,26`,`${first.cx},26`,`${first.cx},${first.cy}`);
+  pts.push(`25,${last.cy}`,`25,${first.cy}`,`${first.cx},${first.cy}`);
   const ptStr=pts.join(" ");
   s+=`<polyline points="${ptStr}" fill="none" stroke="#8a93a5" stroke-width="30" stroke-linejoin="round" stroke-linecap="round"/>`;
   s+=`<polyline points="${ptStr}" fill="none" stroke="#fff" stroke-width="4" stroke-dasharray="14 16" stroke-linejoin="round" stroke-linecap="round" opacity=".9"/>`;
-  // frecce sulla strada di ritorno: si risale a destra e si torna a sinistra in alto
-  [0.30,0.60,0.85].forEach(f=>{
-    const ay=last.cy-(last.cy-26)*f;
-    s+=`<polygon points="1988,${ay-12} 2000,${ay+9} 1976,${ay+9}" fill="#fff" opacity=".95"/>`;
-  });
-  [0.35,0.70].forEach(f=>{
-    const ax=1988-(1988-first.cx)*f;
-    s+=`<polygon points="${ax-12},26 ${ax+9},14 ${ax+9},38" fill="#fff" opacity=".95"/>`;
+  // frecce sulla strada di ritorno (si risale verso la casella 1)
+  [0.25,0.50,0.75].forEach(f=>{
+    const ay=last.cy-(last.cy-first.cy)*f;
+    s+=`<polygon points="25,${ay-12} 37,${ay+9} 13,${ay+9}" fill="#fff" opacity=".95"/>`;
   });
   // caselle
   const destEvid=(players.length && cur().contratto) ? cur().contratto.dest : null;
