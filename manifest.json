@@ -1,0 +1,13 @@
+{
+  "name": "Siamo Tutti Europei",
+  "short_name": "Europei",
+  "description": "Gioco da tavolo educativo sull'Europa: trasporto merci e quiz di cultura europea.",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#003399",
+  "theme_color": "#003399",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png" }
+  ]
+}

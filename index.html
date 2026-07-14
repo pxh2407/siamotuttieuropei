@@ -3,6 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#003399">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
 <title>Siamo Tutti Europei — con Computer</title>
 <style>
   :root{
@@ -125,6 +129,10 @@
   <div style="margin-top:18px;display:flex;gap:12px;align-items:center;flex-wrap:wrap;">
     <button id="btnStart" class="oro" style="font-size:1.25rem;padding:.7em 1.6em;" onclick="avviaPartita()"></button>
     <label style="font-size:1rem;"><input type="checkbox" id="audioOn" checked> <span id="lblSuoni"></span></label>
+  </div>
+
+  <div style="margin-top:14px;">
+    <button id="btnInstall" class="ghost" style="font-size:.95rem;" onclick="installaIcona()"></button>
   </div>
 
   <details style="margin-top:20px;">
@@ -611,6 +619,7 @@ function applyLang(){
   setText('optNormale', tr("Normale","Normal"));
   setText('optDifficile', tr("Difficile (quasi infallibile)","Hard (nearly flawless)"));
   setText('lblSuoni', tr("🔊 Suoni","🔊 Sounds"));
+  setText('btnInstall', tr("🖥 Inserisci un'icona sul desktop","🖥 Add an icon to your desktop"));
   setText('sumRegole', tr("📖 Come si gioca (regole)","📖 How to play (rules)"));
   setText('ulRegole', regoleListHTML());
   // gioco
@@ -636,6 +645,35 @@ function setLang(l){
   if(players.length){ renderGiocatore(); renderScore(); disegnaMappa(); bannerTurno(); }
 }
 function toggleLang(){ setLang(lang==='it'?'en':'it'); }
+
+/* ---- Installazione come app (icona sul desktop / schermata Home) ---- */
+let promptInstall=null;
+window.addEventListener('beforeinstallprompt', e=>{ e.preventDefault(); promptInstall=e; });
+window.addEventListener('appinstalled', ()=>{
+  promptInstall=null;
+  const b=document.getElementById('btnInstall'); if(b) b.style.display='none';
+});
+function installaIcona(){
+  if(window.matchMedia('(display-mode: standalone)').matches){
+    alert(tr("L'icona è già installata: stai già usando il gioco come app!",
+             "The icon is already installed: you are already using the game as an app!"));
+    return;
+  }
+  if(promptInstall){
+    promptInstall.prompt();
+    promptInstall.userChoice.then(()=>{ promptInstall=null; });
+  }else if(/iPad|iPhone|iPod/.test(navigator.userAgent)){
+    alert(tr("Su iPhone/iPad: tocca il pulsante Condividi (il quadrato con la freccia) e poi \"Aggiungi alla schermata Home\".",
+             "On iPhone/iPad: tap the Share button (the square with the arrow), then \"Add to Home Screen\"."));
+  }else{
+    alert(tr("Apri il menu del browser (i tre puntini in alto a destra) e scegli \"Installa\" oppure \"Aggiungi alla schermata Home\".",
+             "Open the browser menu (the three dots at the top right) and choose \"Install\" or \"Add to Home screen\"."));
+  }
+}
+// Se il gioco è già aperto come app, il pulsante non serve
+if(window.matchMedia('(display-mode: standalone)').matches){
+  addEventListener('DOMContentLoaded', ()=>{ const b=document.getElementById('btnInstall'); if(b) b.style.display='none'; });
+}
 
 /* ============================================================
    ALTERNANZA AUTOMATICA tabellone / pannello
