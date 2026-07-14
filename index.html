@@ -585,7 +585,7 @@ function regoleListHTML(){
      <li><b>🔵 Caselle blu</b> (Milano, Riga, Bruxelles): bonus Integrazione + una merce gratis; se c'è un altro giocatore potete <b>scambiarvi le merci</b>.</li>
      <li><b>🗺 Schermo:</b> il gioco passa da solo dal tabellone (durante il movimento) al pannello (quando devi agire); col pulsante <b>🗺/🎛</b> in alto cambi vista quando vuoi.</li>
      <li><b>⭐ Caselle Arena (rosse) o un "6" col dado:</b> scatta <b>Il Momento</b>: quiz per <b>tutti i giocatori</b>! +5 Cultura a chi indovina; il primo che indovina vince un Jolly.</li>
-     <li><b>🃏 Jolly:</b> puoi usarlo per <b>passare la dogana</b> senza rispondere, <b>cambiare la domanda</b>, o <b>rubare una merce</b> a un avversario.</li>
+     <li><b>🃏 Jolly:</b> puoi usarlo per <b>passare la dogana</b> senza rispondere, o <b>rubare una merce</b> a un avversario.</li>
      <li><b>🏆 Vince</b> chi, completati 3 contratti, ha il punteggio totale più alto (Integrazione + Cultura); a parità, chi ha più contratti.</li>`,
     `<li><b>Goal:</b> complete <b>3 contracts</b> by delivering the requested good to the destination country.</li>
      <li><b>🎯 Destination:</b> the squares of the country where you must deliver are <b>highlighted</b> with a blinking border in your colour; after each delivery you <b>choose your next contract</b> out of two offers.</li>
@@ -598,7 +598,7 @@ function regoleListHTML(){
      <li><b>🔵 Blue squares</b> (Milan, Riga, Brussels): Integration bonus + one free good; if another player is there you can <b>exchange goods</b>.</li>
      <li><b>🗺 Screen:</b> the game switches by itself between the board (while moving) and the panel (when you must act); with the <b>🗺/🎛</b> button at the top you can change view any time.</li>
      <li><b>⭐ Arena squares (red) or rolling a "6":</b> <b>The Moment</b> begins: a quiz for <b>all players</b>! +5 Culture for each correct answer; the first to answer correctly wins a Joker.</li>
-     <li><b>🃏 Joker:</b> use it to <b>pass customs</b> without answering, <b>change the question</b>, or <b>steal a good</b> from an opponent.</li>
+     <li><b>🃏 Joker:</b> use it to <b>pass customs</b> without answering, or <b>steal a good</b> from an opponent.</li>
      <li><b>🏆 The winner</b> is whoever, after completing 3 contracts, has the highest total score (Integration + Culture); ties go to whoever has more contracts.</li>`);
 }
 
@@ -1046,22 +1046,19 @@ function dadoDoganale(resto){
   }
 }
 
-// Mostra la domanda di dogana (estratta per poter "cambiare domanda" col Jolly)
-function domandaDogana(resto,evitaQ){
+// Mostra la domanda di dogana
+function domandaDogana(resto){
   const p=cur();
   // il computer, se ha un Jolly, lo usa per passare senza rispondere
   if(p.bot && p.jolly>0){ usaJollyDogana(resto); return; }
   const nazi=CELLE[p.pos].n;
-  let qRaw=pickDomandaNazione(nazi);
-  // se si è usato un Jolly per cambiare domanda, evita di ripresentare la stessa
-  for(let i=0;i<8 && evitaQ && qRaw.q[0]===evitaQ;i++) qRaw=pickDomandaNazione(nazi);
+  const qRaw=pickDomandaNazione(nazi);
   ctx.qCorrente=qRaw.q[0];
   const q=locQ(qRaw);
   let extra="";
   if(p.jolly>0){
     extra=`<div class="opzioni" style="margin-top:8px;">
       <button class="oro" onclick="usaJollyDogana(${resto})">${tr("🃏 Usa Jolly: passa senza domanda","🃏 Use Joker: pass without question")}</button>
-      <button class="oro" onclick="cambiaDomandaDogana(${resto})">${tr("🃏 Usa Jolly: cambia domanda","🃏 Use Joker: change question")}</button>
     </div>`;
   }
   mostraDomanda(tr(`🛂 Dogana — ${naz(nazi)}`,`🛂 Customs — ${naz(nazi)}`), q, (ok)=>{
@@ -1075,12 +1072,6 @@ function usaJollyDogana(resto){
   log(()=>tr(`🃏 ${p.nome} usa un Jolly e supera la dogana senza rispondere.`,`🃏 ${p.nome} uses a Joker and passes customs without answering.`));
   chiudiModale();
   continuaDopoFrontiera(resto,1);
-}
-
-function cambiaDomandaDogana(resto){
-  const p=cur(); p.jolly--;
-  log(()=>tr(`🃏 ${p.nome} usa un Jolly per cambiare la domanda.`,`🃏 ${p.nome} uses a Joker to change the question.`));
-  domandaDogana(resto, ctx.qCorrente);
 }
 
 function continuaDopoFrontiera(resto,molt){
