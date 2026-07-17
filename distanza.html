@@ -1819,7 +1819,8 @@ function metaMirror(){
     ov:document.getElementById('overlay').style.display||'none',
     vi:vistaCorrente, lg:lang,
     bc:tb?tb.style.borderColor:'',
-    tp:(players.length?(players[turno].peer||''):'')
+    tp:(players.length?(players[turno].peer||''):''),
+    bl:bloccaDado
   };
 }
 function sendFullTo(conn){
@@ -1855,9 +1856,9 @@ function applyMirror(d){
     if(d.me.lg && d.me.lg!==lang){ lang=d.me.lg; applyLang(); }
     if(d.me.vi && d.me.vi!==vistaCorrente) vista(d.me.vi);
     const tb=document.getElementById('turnoBanner'); if(tb) tb.style.borderColor=d.me.bc||'';
-    // il pulsante del dado si accende solo quando tocca a questo ospite
+    // il pulsante del dado si accende solo quando tocca a questo ospite (e non l'ha già tirato)
     const bd=document.getElementById('btnDado');
-    if(bd) bd.disabled=!(d.me.tp && peer && d.me.tp===peer.id) || d.me.ov==='flex';
+    if(bd) bd.disabled=!(d.me.tp && peer && d.me.tp===peer.id) || d.me.ov==='flex' || !!d.me.bl;
   }
 }
 
