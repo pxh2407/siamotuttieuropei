@@ -1843,7 +1843,12 @@ setInterval(()=>{
 function applyMirror(d){
   if(d.r) for(const id in d.r){
     const el=document.getElementById(id);
-    if(el){ el.innerHTML=d.r[id]; if(id==='log') el.scrollTop=el.scrollHeight; }
+    if(el){
+      el.innerHTML=d.r[id];
+      if(id==='log') el.scrollTop=el.scrollHeight;
+      // i blocchi pointer-events dell'host non valgono qui: i permessi li decide l'host
+      if(id==='modal'||id==='actions') el.querySelectorAll('[style]').forEach(x=>{ if(x.style.pointerEvents) x.style.pointerEvents='auto'; });
+    }
   }
   if(d.me){
     document.getElementById('overlay').style.display=d.me.ov;
