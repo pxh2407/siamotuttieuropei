@@ -135,6 +135,21 @@
     <button id="btnInstall" class="ghost" style="font-size:.95rem;" onclick="installaIcona()"></button>
   </div>
 
+  <!-- Gioco a distanza (case diverse) -->
+  <div id="remotoBox" style="margin-top:18px;padding:12px 14px;background:#eef9f0;border:2px solid var(--verde);border-radius:10px;">
+    <h3 id="hRemoto" style="margin:0 0 8px;"></h3>
+    <p id="pRemoto" style="margin:0 0 10px;font-size:1rem;"></p>
+    <div id="remotoScelte" style="display:flex;gap:10px;flex-wrap:wrap;">
+      <button class="verde" id="btnCreaRem" onclick="remoteCreaUI()"></button>
+      <button class="ghost" id="btnEntraRem" onclick="remoteEntraUI()"></button>
+    </div>
+    <div id="remotoPannello" style="display:none;margin-top:10px;"></div>
+    <details style="margin-top:12px;">
+      <summary id="sumRemoto" style="cursor:pointer;font-weight:600;"></summary>
+      <div id="txtRemoto" style="font-size:1rem;line-height:1.5;margin-top:8px;"></div>
+    </details>
+  </div>
+
   <details style="margin-top:20px;">
     <summary id="sumRegole"></summary>
     <ul id="ulRegole"></ul>
@@ -654,6 +669,50 @@ function applyLang(){
   setText('optDifficile', tr("Difficile (quasi infallibile)","Hard (nearly flawless)"));
   setText('lblSuoni', tr("🔊 Suoni","🔊 Sounds"));
   setText('btnInstall', tr("🖥 Inserisci un'icona sul desktop","🖥 Add an icon to your desktop"));
+  setText('hRemoto', tr("🌍 Gioca a distanza (case diverse)","🌍 Play remotely (different homes)"));
+  setText('pRemoto', tr("Ogni giocatore apre questa pagina dal proprio computer o telefono. Uno crea la partita e detta agli altri il codice.","Each player opens this page on their own computer or phone. One creates the game and tells the others the code."));
+  setText('btnCreaRem', tr("➕ Crea una partita","➕ Create a game"));
+  setText('btnEntraRem', tr("🔑 Entra con un codice","🔑 Join with a code"));
+  setText('sumRemoto', tr("📖 Come funziona il gioco a distanza (istruzioni passo per passo)","📖 How remote play works (step-by-step instructions)"));
+  setText('txtRemoto', tr(
+    `<p><b>Cosa serve:</b> una connessione a Internet e un browser (Chrome, Edge o Safari) su computer, tablet o telefono. Possono giocare da <b>2 a 5 persone</b> (1 organizzatore + fino a 4 ospiti), ognuna da casa propria, anche in nazioni diverse. Volendo, gioca anche il computer 🤖 "Europa" (casella in alto).</p>
+     <p><b>👑 Per l'ORGANIZZATORE (chi crea la partita):</b></p>
+     <ol style="padding-left:1.2em;">
+       <li>Premi <b>"➕ Crea una partita"</b>, scrivi il tuo nome e conferma.</li>
+       <li>Sullo schermo appare un <b>codice</b>, per esempio <b>EU1234</b>: comunicalo agli altri giocatori (per telefono o WhatsApp).</li>
+       <li>Man mano che gli altri entrano, i loro nomi compaiono nell'elenco.</li>
+       <li>Quando ci sono tutti, premi <b>"▶ Inizia la partita a distanza"</b>.</li>
+       <li><b>Importante:</b> la partita "vive" sul tuo schermo — <b>non chiudere la pagina</b> fino alla fine, o la partita termina per tutti.</li>
+     </ol>
+     <p><b>🙋 Per gli OSPITI (chi entra nella partita):</b></p>
+     <ol style="padding-left:1.2em;">
+       <li>Apri questa stessa pagina sul tuo computer o telefono.</li>
+       <li>Premi <b>"🔑 Entra con un codice"</b>.</li>
+       <li>Scrivi il <b>tuo nome</b> e il <b>codice</b> che ti ha dettato l'organizzatore, poi premi "✅ Entra".</li>
+       <li>Comparirà "Sei dentro!": aspetta che l'organizzatore avvii la partita.</li>
+     </ol>
+     <p><b>🎲 Durante la partita:</b> tutti vedono lo stesso tabellone, che si aggiorna da solo. Quando è il <b>tuo</b> turno, i pulsanti (dado, risposte, azioni) si attivano sul tuo schermo: gli altri guardano. Durante <b>"Il Momento"</b> rispondono tutti, uno alla volta, ciascuno dal proprio schermo. Il cronometro delle domande è di 30 secondi come sempre.</p>
+     <p><b>🔌 Se cade la connessione a un ospite:</b> niente paura — deve solo riaprire questa pagina, premere "🔑 Entra con un codice" e scrivere <b>lo stesso nome e lo stesso codice</b> di prima: rientra nella partita dov'era.</p>
+     <p><b>Da sapere:</b> la lingua della partita è quella scelta dall'organizzatore; i suoni si sentono solo dal suo computer.</p>`,
+    `<p><b>What you need:</b> an Internet connection and a browser (Chrome, Edge or Safari) on a computer, tablet or phone. <b>2 to 5 people</b> can play (1 organizer + up to 4 guests), each from their own home, even in different countries. If you wish, the computer 🤖 "Europa" plays too (checkbox above).</p>
+     <p><b>👑 For the ORGANIZER (who creates the game):</b></p>
+     <ol style="padding-left:1.2em;">
+       <li>Press <b>"➕ Create a game"</b>, type your name and confirm.</li>
+       <li>A <b>code</b> appears on screen, for example <b>EU1234</b>: tell it to the other players (by phone or WhatsApp).</li>
+       <li>As the others join, their names appear in the list.</li>
+       <li>When everyone is in, press <b>"▶ Start the remote game"</b>.</li>
+       <li><b>Important:</b> the game "lives" on your screen — <b>do not close the page</b> until the end, or the game ends for everyone.</li>
+     </ol>
+     <p><b>🙋 For the GUESTS (who join the game):</b></p>
+     <ol style="padding-left:1.2em;">
+       <li>Open this same page on your computer or phone.</li>
+       <li>Press <b>"🔑 Join with a code"</b>.</li>
+       <li>Type <b>your name</b> and the <b>code</b> given by the organizer, then press "✅ Join".</li>
+       <li>You will see "You're in!": wait for the organizer to start the game.</li>
+     </ol>
+     <p><b>🎲 During the game:</b> everyone sees the same board, which updates by itself. When it is <b>your</b> turn, the buttons (dice, answers, actions) become active on your screen: the others watch. During <b>"The Moment"</b> everyone answers, one at a time, each from their own screen. The question timer is 30 seconds as usual.</p>
+     <p><b>🔌 If a guest loses the connection:</b> no worries — just reopen this page, press "🔑 Join with a code" and type <b>the same name and the same code</b> as before: you rejoin the game where it was.</p>
+     <p><b>Good to know:</b> the game language is the organizer's; sounds play only on their computer.</p>`));
   setText('sumRegole', tr("📖 Come si gioca (regole)","📖 How to play (rules)"));
   setText('ulRegole', regoleListHTML());
   // gioco
@@ -748,12 +807,26 @@ let botDiff = 0.65;          // probabilità che il computer risponda bene
 let partitaFinita = false;   // blocca le azioni automatiche a partita conclusa
 const BOT_NOME = "🤖 Europa";
 
+/* ---- Stato del gioco a distanza ---- */
+let remoteMode=false;     // partita a distanza in corso
+let isHost=false;         // questo browser è l'organizzatore (esegue il gioco)
+let guestMode=false;      // questo browser è un ospite (schermo speculare)
+let peer=null;            // oggetto PeerJS
+let conns=[];             // connessioni dell'host verso gli ospiti
+let myConn=null;          // connessione dell'ospite verso l'host
+let lobbyGuests=[];       // {connId, nome} in attesa, lato host
+let remStarted=false;     // la partita a distanza è cominciata
+let rispCorrente=null;    // chi deve rispondere alla domanda aperta (per i permessi)
+let mirrorCache={};       // ultimo HTML inviato per regione (si spedisce solo ciò che cambia)
+let remCode="";           // codice della partita
+
 /* ============================================================
    SALVATAGGIO AUTOMATICO (localStorage)
    La partita si salva all'inizio di ogni turno; alla riapertura
    della pagina compare il pulsante "Riprendi la partita".
    ============================================================ */
 function salvaPartita(){
+  if(remoteMode) return;   // le partite a distanza non usano il salvataggio locale
   try{ localStorage.setItem("steSalvataggioBot3", JSON.stringify({players,turno,lang,botDiff})); }catch(e){}
 }
 function cancellaSalvataggio(){ try{ localStorage.removeItem("steSalvataggioBot3"); }catch(e){} }
@@ -1001,6 +1074,9 @@ function iniziaTurno(){
   }
   bloccaDado=false;
   document.getElementById("btnDado").disabled=false;
+  // se tocca a un giocatore lontano, l'host non può tirare per lui
+  // (il suo clic arriva via rete e chiama tiraDado direttamente)
+  if(isHost && p.peer) document.getElementById("btnDado").disabled=true;
   // il computer tira il dado da solo
   if(p.bot){
     document.getElementById("btnDado").disabled=true;
@@ -1220,6 +1296,7 @@ function pannelloAzioni(){
   vista('pan');   // arrivato sulla casella: si agisce dal pannello
   // il computer decide da solo (i pulsanti restano visibili ma non cliccabili)
   if(p.bot){ div.style.pointerEvents="none"; setTimeout(botAzioni,1100); }
+  else if(isHost && p.peer){ div.style.pointerEvents="none"; }  // agisce l'ospite lontano, non l'host
   else div.style.pointerEvents="auto";
 }
 
@@ -1343,6 +1420,8 @@ function scegliContratto(){
     <p style="font-size:1.15rem;">${tr("Quale trasporto accetti?","Which delivery do you accept?")}</p>
     <div class="opzioni">${btn(0)}${btn(1)}</div>`;
   document.getElementById("overlay").style.display="flex";
+  // se sceglie un ospite lontano, l'host non può cliccare per lui
+  if(isHost && cur().peer){ document.querySelector("#modal .opzioni").style.pointerEvents="none"; }
   // il computer sceglie da solo: preferisce la merce che ha già a bordo
   if(cur().bot){
     document.querySelector("#modal .opzioni").style.pointerEvents="none";
@@ -1416,6 +1495,7 @@ function finePartita(){
 let qTimer=null;
 function mostraDomanda(titolo,q,cb,extraHtml,rispondente){
   clearInterval(qTimer);
+  rispCorrente=rispondente||null;   // per i permessi del gioco a distanza
   const SECS=30; // cronometro della prova (come da regolamento)
   const ov=document.getElementById("overlay");
   const m=document.getElementById("modal");
@@ -1453,6 +1533,10 @@ function mostraDomanda(titolo,q,cb,extraHtml,rispondente){
       chiudi(ok,false);
     };
   });
+  // se risponde un ospite lontano, l'host non può cliccare per lui
+  if(isHost && rispondente && rispondente.peer){
+    m.querySelectorAll(".opzioni").forEach(d=>d.style.pointerEvents="none");
+  }
   // risposta automatica del computer (il pubblico guarda, i clic sono disattivati)
   if(rispondente && rispondente.bot){
     m.querySelectorAll(".opzioni").forEach(d=>d.style.pointerEvents="none");
@@ -1483,6 +1567,8 @@ function mostraImprevisto(imp){
     chiudiModale();
     finalizzaTurno();
   };
+  // l'imprevisto di un ospite lontano lo conferma lui dal suo schermo
+  if(isHost && p.peer){ document.getElementById("okImp").style.pointerEvents="none"; }
   // il computer conferma da solo l'imprevisto
   if(p.bot){
     document.getElementById("okImp").style.pointerEvents="none";
@@ -1490,7 +1576,7 @@ function mostraImprevisto(imp){
   }
 }
 
-function chiudiModale(){ clearInterval(qTimer); document.getElementById("overlay").style.display="none"; }
+function chiudiModale(){ clearInterval(qTimer); rispCorrente=null; document.getElementById("overlay").style.display="none"; }
 
 function mostraRegole(){
   const m=document.getElementById("modal");
@@ -1585,6 +1671,277 @@ function jingle(){
 }
 function toggleAudio(){ audio=!audio; aggiornaAudioBtn(); if(audio)beep(660,.1); }
 function aggiornaAudioBtn(){ document.getElementById("btnAudio").textContent=audio?"🔊":"🔇"; }
+
+/* ============================================================
+   GIOCO A DISTANZA (PeerJS, senza registrazioni)
+   L'organizzatore (host) esegue tutta la partita sul suo browser;
+   gli ospiti ricevono uno "specchio" dello schermo e i loro clic
+   viaggiano verso l'host, che li esegue solo se tocca a loro.
+   ============================================================ */
+const REGIONI_MIRROR=['turnoBanner','dadoView','actions','cardGiocatore','scoreboard','log','boardBar','board','modal'];
+let remNomeVal="";
+
+function caricaPeerJS(cb){
+  if(window.Peer) return cb();
+  const s=document.createElement('script');
+  s.src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js";
+  s.onload=cb;
+  s.onerror=()=>alert(tr("Non riesco a caricare il modulo di collegamento: controlla la connessione a Internet.","Cannot load the connection module: check your Internet connection."));
+  document.head.appendChild(s);
+}
+
+function remotoNascondiLocale(h){
+  ['hNum','numGiocatori','hNomi','righeNomi','resumeBox'].forEach(id=>{
+    const e=document.getElementById(id); if(e) e.style.display=h?'none':'';
+  });
+  const bs=document.getElementById('btnStart'); if(bs) bs.parentElement.style.display=h?'none':'flex';
+}
+function remotoAnnulla(){ location.reload(); }
+
+/* ---- ORGANIZZATORE: crea la partita ---- */
+function remoteCreaUI(){
+  remotoNascondiLocale(true);
+  document.getElementById('remotoScelte').style.display='none';
+  const pn=document.getElementById('remotoPannello');
+  pn.style.display='block';
+  pn.innerHTML=`<div style="margin-bottom:8px;"><b>${tr("Il tuo nome:","Your name:")}</b> <input id="remNomeHost" maxlength="14" value="${tr('Organizzatore','Organizer')}" style="font-size:1.05rem;padding:.3em;"></div>
+    <button class="verde" onclick="remoteCrea()">${tr("✅ Crea e mostra il codice","✅ Create and show the code")}</button>
+    <button class="ghost" onclick="remotoAnnulla()">${tr("↩ Annulla","↩ Cancel")}</button>
+    <div id="remStato" style="margin-top:10px;font-size:1.05rem;"></div>`;
+}
+function hostNome(){ return remNomeVal||tr("Organizzatore","Organizer"); }
+function remoteCrea(){
+  remNomeVal=(document.getElementById('remNomeHost').value.trim())||tr("Organizzatore","Organizer");
+  const st=document.getElementById('remStato');
+  st.innerHTML=tr("⏳ Creazione in corso…","⏳ Creating…");
+  caricaPeerJS(()=>{
+    let tent=0;
+    const prova=()=>{
+      remCode="EU"+(1000+Math.floor(Math.random()*9000));
+      peer=new Peer("ste2026-"+remCode);
+      peer.on('open',()=>{ isHost=true; remoteMode=true; renderLobbyHost(); });
+      peer.on('connection',c=>hostSetupConn(c));
+      peer.on('disconnected',()=>{ try{peer.reconnect();}catch(e){} });
+      peer.on('error',err=>{
+        if(err && err.type==='unavailable-id' && tent++<5){ try{peer.destroy();}catch(e){} prova(); }
+        else if(!remStarted){ const s2=document.getElementById('remStato'); if(s2) s2.innerHTML=tr("❌ Errore di collegamento: riprova tra poco.","❌ Connection error: try again shortly.")+" ("+((err&&err.type)||'?')+")"; }
+      });
+    };
+    prova();
+  });
+}
+function renderLobbyHost(){
+  const pn=document.getElementById('remotoPannello'); if(!pn) return;
+  const nomi=[hostNome()+" "+tr("(tu)","(you)"),...lobbyGuests.map(g=>g.nome)];
+  pn.innerHTML=`<div style="font-size:1.15rem;">${tr("Codice della partita:","Game code:")} <b style="font-size:1.7rem;letter-spacing:3px;color:var(--blu);">${remCode}</b></div>
+    <p style="margin:6px 0;">${tr('Dettalo agli altri giocatori: devono aprire questa stessa pagina e premere "🔑 Entra con un codice".','Tell it to the other players: they must open this same page and press "🔑 Join with a code".')}</p>
+    <div style="margin:8px 0;font-size:1.1rem;"><b>${tr("Giocatori collegati:","Connected players:")}</b> ${nomi.join(" · ")}</div>
+    <button class="oro" style="font-size:1.15rem;" onclick="remoteStart()" ${lobbyGuests.length?"":"disabled"}>${tr("▶ Inizia la partita a distanza","▶ Start the remote game")}</button>
+    <button class="ghost" onclick="remotoAnnulla()">${tr("↩ Annulla","↩ Cancel")}</button>
+    ${lobbyGuests.length?"":`<p style="margin:8px 0 0;font-style:italic;">${tr("In attesa che qualcuno entri col codice…","Waiting for someone to join with the code…")}</p>`}`;
+}
+function hostSetupConn(conn){
+  conn.on('data',d=>{
+    if(!d||typeof d!=='object') return;
+    if(d.t==='join'){
+      const nome=String(d.nome||'').slice(0,14).trim()||tr('Ospite','Guest');
+      if(remStarted){
+        // rientro di un giocatore caduto: lo riconosciamo dal nome
+        const p=players.find(x=>x.peer && x.nome===nome);
+        if(p){ p.peer=conn.peer; if(!conns.includes(conn)) conns.push(conn); sendFullTo(conn); log(()=>tr(`🔌 ${nome} si è ricollegato.`,`🔌 ${nome} reconnected.`)); }
+        else{ try{conn.send({t:'no', msg:tr("La partita è già iniziata.","The game has already started.")});}catch(e){} }
+        return;
+      }
+      if(lobbyGuests.length>=4){ try{conn.send({t:'no', msg:tr("La partita è al completo.","The game is full.")});}catch(e){} return; }
+      let n=nome,k=2;
+      while(n===hostNome() || lobbyGuests.some(g=>g.nome===n)) n=nome+" "+(k++);
+      lobbyGuests.push({connId:conn.peer, nome:n});
+      if(!conns.includes(conn)) conns.push(conn);
+      broadcastLobby(); renderLobbyHost();
+    }
+    else if(d.t==='click'){ eseguiClickRemoto(conn.peer,d); }
+  });
+  conn.on('close',()=>{
+    conns=conns.filter(c=>c!==conn);
+    if(!remStarted){
+      lobbyGuests=lobbyGuests.filter(g=>g.connId!==conn.peer);
+      broadcastLobby(); renderLobbyHost();
+    }else{
+      const p=players.find(x=>x.peer===conn.peer);
+      if(p) log(()=>tr(`⚠️ ${p.nome} ha perso il collegamento: può rientrare aprendo la pagina e usando lo stesso nome e il codice ${remCode}.`,`⚠️ ${p.nome} lost the connection: they can rejoin with the same name and code ${remCode}.`));
+    }
+  });
+}
+function broadcastLobby(){ broadcast({t:'lobby', nomi:[hostNome(),...lobbyGuests.map(g=>g.nome)]}); }
+function broadcast(m){ conns.forEach(c=>{ try{ if(c.open) c.send(m); }catch(e){} }); }
+
+function remoteStart(){
+  if(!lobbyGuests.length || remStarted) return;
+  audio=document.getElementById("audioOn").checked;
+  players=[{nome:hostNome(), col:COLORI[0], pos:0, inv:[], contratto:nuovoContratto(), fatti:0, integrazione:0, cultura:0, jolly:0, skip:false}];
+  lobbyGuests.forEach((g,i)=>{
+    players.push({nome:g.nome, col:COLORI[i+1], pos:0, inv:[], contratto:nuovoContratto(), fatti:0, integrazione:0, cultura:0, jolly:0, skip:false, peer:g.connId});
+  });
+  if(document.getElementById("botOn").checked && players.length<6){
+    botDiff=parseFloat(document.getElementById("botDiffSel").value)||0.65;
+    players.push({nome:BOT_NOME, col:COLORI[players.length]||"#455A64", pos:0, inv:[], contratto:nuovoContratto(), fatti:0, integrazione:0, cultura:0, jolly:0, skip:false, bot:true});
+  }
+  nGiocatori=players.length;
+  remStarted=true;
+  broadcast({t:'start', lang});
+  document.getElementById("setup").style.display="none";
+  document.getElementById("gioco").style.display="block";
+  disegnaMappa();
+  turno=0;
+  aggiornaAudioBtn();
+  log(()=>tr(`🎺 La partita a distanza ha inizio (codice ${remCode})! Buon viaggio in Europa.`,`🎺 The remote game begins (code ${remCode})! Have a good trip across Europe.`));
+  jingle();
+  iniziaTurno();
+}
+
+/* ---- OSPITE: entra con un codice ---- */
+function remoteEntraUI(){
+  remotoNascondiLocale(true);
+  document.getElementById('remotoScelte').style.display='none';
+  const pn=document.getElementById('remotoPannello');
+  pn.style.display='block';
+  pn.innerHTML=`<div style="margin-bottom:8px;"><b>${tr("Il tuo nome:","Your name:")}</b> <input id="remNomeG" maxlength="14" placeholder="${tr('Es. Maria','E.g. Mary')}" style="font-size:1.05rem;padding:.3em;"></div>
+    <div style="margin-bottom:8px;"><b>${tr("Codice partita:","Game code:")}</b> <input id="remCodeG" maxlength="6" placeholder="EU1234" style="font-size:1.05rem;padding:.3em;text-transform:uppercase;width:7em;"></div>
+    <button class="verde" onclick="remoteEntra()">${tr("✅ Entra","✅ Join")}</button>
+    <button class="ghost" onclick="remotoAnnulla()">${tr("↩ Annulla","↩ Cancel")}</button>
+    <div id="remStato" style="margin-top:10px;font-size:1.05rem;"></div>`;
+}
+function remoteEntra(){
+  const nome=(document.getElementById('remNomeG').value.trim())||tr("Ospite","Guest");
+  const code=document.getElementById('remCodeG').value.trim().toUpperCase();
+  const st=document.getElementById('remStato');
+  if(!/^EU\d{4}$/.test(code)){ st.innerHTML=tr("Il codice è del tipo EU1234: chiedilo all'organizzatore.","The code looks like EU1234: ask the organizer."); return; }
+  st.innerHTML=tr("⏳ Collegamento…","⏳ Connecting…");
+  caricaPeerJS(()=>{
+    peer=new Peer();
+    peer.on('open',()=>{
+      myConn=peer.connect("ste2026-"+code,{reliable:true});
+      myConn.on('open',()=>{ remoteMode=true; remCode=code; myConn.send({t:'join', nome}); });
+      myConn.on('data',d=>guestOnData(d));
+      myConn.on('close',()=>{
+        if(remStarted) alert(tr("⚠️ Collegamento con l'organizzatore perso. Ricarica la pagina e rientra con lo stesso nome e lo stesso codice.","⚠️ Connection to the organizer lost. Reload the page and rejoin with the same name and code."));
+        else{ const s2=document.getElementById('remStato'); if(s2) s2.innerHTML=tr("❌ Collegamento chiuso.","❌ Connection closed."); }
+      });
+      setTimeout(()=>{ if(myConn && !myConn.open && !remStarted){ const s2=document.getElementById('remStato'); if(s2) s2.innerHTML=tr("❌ Nessuna partita trovata con questo codice: controllalo e riprova.","❌ No game found with this code: check it and try again."); } },9000);
+    });
+    peer.on('error',err=>{
+      if(err && err.type==='peer-unavailable'){ const s2=document.getElementById('remStato'); if(s2) s2.innerHTML=tr("❌ Nessuna partita trovata con questo codice: controllalo e riprova.","❌ No game found with this code: check it and try again."); }
+      else{ const s2=document.getElementById('remStato'); if(s2) s2.innerHTML=tr("❌ Errore di collegamento.","❌ Connection error.")+" ("+((err&&err.type)||'?')+")"; }
+    });
+  });
+}
+function guestOnData(d){
+  if(!d||typeof d!=='object') return;
+  if(d.t==='lobby'){
+    const st=document.getElementById('remStato');
+    if(st) st.innerHTML=tr("✅ Sei dentro! In attesa che l'organizzatore avvii la partita…","✅ You're in! Waiting for the organizer to start…")+"<br><b>"+tr("Giocatori:","Players:")+"</b> "+d.nomi.join(" · ");
+  }
+  else if(d.t==='no'){
+    const st=document.getElementById('remStato'); if(st) st.innerHTML="❌ "+d.msg;
+    try{myConn.close();}catch(e){}
+  }
+  else if(d.t==='start'){
+    remStarted=true; guestMode=true;
+    lang=d.lang||'it'; applyLang();
+    document.getElementById('setup').style.display='none';
+    document.getElementById('gioco').style.display='block';
+    document.getElementById('btnNuova').style.display='none';
+    document.querySelectorAll('#gioco .btnLang').forEach(b=>b.style.display='none');
+    vista('pan');
+  }
+  else if(d.t==='m'){ applyMirror(d); }
+}
+
+/* ---- Specchio dello schermo: host → ospiti ---- */
+function metaMirror(){
+  const tb=document.getElementById('turnoBanner');
+  return {
+    ov:document.getElementById('overlay').style.display||'none',
+    vi:vistaCorrente, lg:lang,
+    bc:tb?tb.style.borderColor:'',
+    tp:(players.length?(players[turno].peer||''):''),
+    bl:bloccaDado
+  };
+}
+function sendFullTo(conn){
+  const r={};
+  REGIONI_MIRROR.forEach(id=>{ const el=document.getElementById(id); r[id]=el?el.innerHTML:''; });
+  try{ conn.send({t:'start', lang}); conn.send({t:'m', r, me:metaMirror()}); }catch(e){}
+}
+setInterval(()=>{
+  if(!isHost || !remStarted) return;
+  const out={}; let has=false;
+  REGIONI_MIRROR.forEach(id=>{
+    const el=document.getElementById(id); const h=el?el.innerHTML:"";
+    if(mirrorCache[id]!==h){ mirrorCache[id]=h; out[id]=h; has=true; }
+  });
+  const me=metaMirror(), mk=JSON.stringify(me);
+  const payload={t:'m'};
+  if(mirrorCache._meta!==mk){ mirrorCache._meta=mk; payload.me=me; has=true; }
+  if(Object.keys(out).length) payload.r=out;
+  if(has) broadcast(payload);
+},200);
+function applyMirror(d){
+  if(d.r) for(const id in d.r){
+    const el=document.getElementById(id);
+    if(el){
+      el.innerHTML=d.r[id];
+      if(id==='log') el.scrollTop=el.scrollHeight;
+      // i blocchi pointer-events dell'host non valgono qui: i permessi li decide l'host
+      if(id==='modal'||id==='actions') el.querySelectorAll('[style]').forEach(x=>{ if(x.style.pointerEvents) x.style.pointerEvents='auto'; });
+    }
+  }
+  if(d.me){
+    document.getElementById('overlay').style.display=d.me.ov;
+    if(d.me.lg && d.me.lg!==lang){ lang=d.me.lg; applyLang(); }
+    if(d.me.vi && d.me.vi!==vistaCorrente) vista(d.me.vi);
+    const tb=document.getElementById('turnoBanner'); if(tb) tb.style.borderColor=d.me.bc||'';
+    // il pulsante del dado si accende solo quando tocca a questo ospite (e non l'ha già tirato)
+    const bd=document.getElementById('btnDado');
+    if(bd) bd.disabled=!(d.me.tp && peer && d.me.tp===peer.id) || d.me.ov==='flex' || !!d.me.bl;
+  }
+}
+
+/* ---- Clic dell'ospite: intercettati e spediti all'host ---- */
+document.addEventListener('click',function(e){
+  if(!guestMode) return;
+  const b=e.target.closest('button');
+  if(!b) return;
+  // questi pulsanti agiscono solo sullo schermo locale dell'ospite
+  if(['btnVista','btnAudio','btnRegole','btnInstall'].includes(b.id) || b.classList.contains('btnLang')) return;
+  e.preventDefault(); e.stopPropagation();
+  if(!myConn || !myConn.open) return;
+  let rg=null, ix=0;
+  if(b.id==='btnDado'){ rg='btnDado'; }
+  else{
+    for(const rid of ['modal','actions']){
+      const el=document.getElementById(rid);
+      if(el && el.contains(b)){ rg=rid; ix=[...el.querySelectorAll('button')].indexOf(b); break; }
+    }
+  }
+  if(rg) myConn.send({t:'click', rg, ix, tx:(b.textContent||'').trim()});
+},true);
+
+/* ---- L'host esegue il clic di un ospite, solo se è il suo momento ---- */
+function eseguiClickRemoto(sender,d){
+  if(!remStarted || partitaFinita) return;
+  const modalOpen=document.getElementById('overlay').style.display==='flex';
+  const actor=(modalOpen && rispCorrente) ? rispCorrente : cur();
+  if(!actor || actor.peer!==sender) return;
+  if(d.rg==='btnDado'){ if(!modalOpen && players[turno]===actor) tiraDado(); return; }
+  if(d.rg==='actions' && modalOpen) return;   // col modale aperto si clicca solo lì
+  const root=document.getElementById(d.rg); if(!root) return;
+  const btns=[...root.querySelectorAll('button')];
+  const b=btns[d.ix];
+  if(!b || b.disabled) return;
+  if((b.textContent||'').trim()!==d.tx) return;  // il pulsante è cambiato nel frattempo
+  b.click();
+}
 
 /* ============================================================
    AVVIO
