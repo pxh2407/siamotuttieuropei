@@ -16,6 +16,10 @@ Sei un camionista europeo 🚚: attraversa 15 nazioni, supera le dogane risponde
 
 Oltre 220 domande su geografia, storia, cultura e istituzioni europee, in due lingue.
 
+## 🌍 Gioco a distanza
+
+Si può giocare anche da **case diverse, perfino in nazioni diverse**: uno crea la partita e riceve un codice (es. `EU1234`), gli altri aprono la stessa pagina ed entrano col codice. Tutti vedono lo stesso tabellone in diretta e ognuno gioca dal proprio schermo quando è il suo turno. Le istruzioni complete sono nella pagina del gioco, alla voce "📖 Come funziona il gioco a distanza".
+
 ## Installazione (facoltativa)
 
 Nella schermata iniziale c'è il pulsante **"🖥 Inserisci un'icona sul desktop"**: con un clic il gioco si installa come una app, con l'icona della bandiera europea sul desktop o sulla schermata Home del telefono.
