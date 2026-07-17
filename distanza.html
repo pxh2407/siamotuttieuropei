@@ -143,6 +143,10 @@
       <button class="ghost" id="btnEntraRem" onclick="remoteEntraUI()"></button>
     </div>
     <div id="remotoPannello" style="display:none;margin-top:10px;"></div>
+    <details style="margin-top:12px;">
+      <summary id="sumRemoto" style="cursor:pointer;font-weight:600;"></summary>
+      <div id="txtRemoto" style="font-size:1rem;line-height:1.5;margin-top:8px;"></div>
+    </details>
   </div>
 
   <details style="margin-top:20px;">
@@ -668,6 +672,46 @@ function applyLang(){
   setText('pRemoto', tr("Ogni giocatore apre questa pagina dal proprio computer o telefono. Uno crea la partita e detta agli altri il codice.","Each player opens this page on their own computer or phone. One creates the game and tells the others the code."));
   setText('btnCreaRem', tr("➕ Crea una partita","➕ Create a game"));
   setText('btnEntraRem', tr("🔑 Entra con un codice","🔑 Join with a code"));
+  setText('sumRemoto', tr("📖 Come funziona il gioco a distanza (istruzioni passo per passo)","📖 How remote play works (step-by-step instructions)"));
+  setText('txtRemoto', tr(
+    `<p><b>Cosa serve:</b> una connessione a Internet e un browser (Chrome, Edge o Safari) su computer, tablet o telefono. Possono giocare da <b>2 a 5 persone</b> (1 organizzatore + fino a 4 ospiti), ognuna da casa propria, anche in nazioni diverse. Volendo, gioca anche il computer 🤖 "Europa" (casella in alto).</p>
+     <p><b>👑 Per l'ORGANIZZATORE (chi crea la partita):</b></p>
+     <ol style="padding-left:1.2em;">
+       <li>Premi <b>"➕ Crea una partita"</b>, scrivi il tuo nome e conferma.</li>
+       <li>Sullo schermo appare un <b>codice</b>, per esempio <b>EU1234</b>: comunicalo agli altri giocatori (per telefono o WhatsApp).</li>
+       <li>Man mano che gli altri entrano, i loro nomi compaiono nell'elenco.</li>
+       <li>Quando ci sono tutti, premi <b>"▶ Inizia la partita a distanza"</b>.</li>
+       <li><b>Importante:</b> la partita "vive" sul tuo schermo — <b>non chiudere la pagina</b> fino alla fine, o la partita termina per tutti.</li>
+     </ol>
+     <p><b>🙋 Per gli OSPITI (chi entra nella partita):</b></p>
+     <ol style="padding-left:1.2em;">
+       <li>Apri questa stessa pagina sul tuo computer o telefono.</li>
+       <li>Premi <b>"🔑 Entra con un codice"</b>.</li>
+       <li>Scrivi il <b>tuo nome</b> e il <b>codice</b> che ti ha dettato l'organizzatore, poi premi "✅ Entra".</li>
+       <li>Comparirà "Sei dentro!": aspetta che l'organizzatore avvii la partita.</li>
+     </ol>
+     <p><b>🎲 Durante la partita:</b> tutti vedono lo stesso tabellone, che si aggiorna da solo. Quando è il <b>tuo</b> turno, i pulsanti (dado, risposte, azioni) si attivano sul tuo schermo: gli altri guardano. Durante <b>"Il Momento"</b> rispondono tutti, uno alla volta, ciascuno dal proprio schermo. Il cronometro delle domande è di 30 secondi come sempre.</p>
+     <p><b>🔌 Se cade la connessione a un ospite:</b> niente paura — deve solo riaprire questa pagina, premere "🔑 Entra con un codice" e scrivere <b>lo stesso nome e lo stesso codice</b> di prima: rientra nella partita dov'era.</p>
+     <p><b>Da sapere:</b> la lingua della partita è quella scelta dall'organizzatore; i suoni si sentono solo dal suo computer.</p>`,
+    `<p><b>What you need:</b> an Internet connection and a browser (Chrome, Edge or Safari) on a computer, tablet or phone. <b>2 to 5 people</b> can play (1 organizer + up to 4 guests), each from their own home, even in different countries. If you wish, the computer 🤖 "Europa" plays too (checkbox above).</p>
+     <p><b>👑 For the ORGANIZER (who creates the game):</b></p>
+     <ol style="padding-left:1.2em;">
+       <li>Press <b>"➕ Create a game"</b>, type your name and confirm.</li>
+       <li>A <b>code</b> appears on screen, for example <b>EU1234</b>: tell it to the other players (by phone or WhatsApp).</li>
+       <li>As the others join, their names appear in the list.</li>
+       <li>When everyone is in, press <b>"▶ Start the remote game"</b>.</li>
+       <li><b>Important:</b> the game "lives" on your screen — <b>do not close the page</b> until the end, or the game ends for everyone.</li>
+     </ol>
+     <p><b>🙋 For the GUESTS (who join the game):</b></p>
+     <ol style="padding-left:1.2em;">
+       <li>Open this same page on your computer or phone.</li>
+       <li>Press <b>"🔑 Join with a code"</b>.</li>
+       <li>Type <b>your name</b> and the <b>code</b> given by the organizer, then press "✅ Join".</li>
+       <li>You will see "You're in!": wait for the organizer to start the game.</li>
+     </ol>
+     <p><b>🎲 During the game:</b> everyone sees the same board, which updates by itself. When it is <b>your</b> turn, the buttons (dice, answers, actions) become active on your screen: the others watch. During <b>"The Moment"</b> everyone answers, one at a time, each from their own screen. The question timer is 30 seconds as usual.</p>
+     <p><b>🔌 If a guest loses the connection:</b> no worries — just reopen this page, press "🔑 Join with a code" and type <b>the same name and the same code</b> as before: you rejoin the game where it was.</p>
+     <p><b>Good to know:</b> the game language is the organizer's; sounds play only on their computer.</p>`));
   setText('sumRegole', tr("📖 Come si gioca (regole)","📖 How to play (rules)"));
   setText('ulRegole', regoleListHTML());
   // gioco
