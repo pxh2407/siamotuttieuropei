@@ -22,7 +22,11 @@ Gioco in un unico file HTML (`index.html`), 1–6 giocatori, bilingue IT/EN: tra
 
 ## Meccaniche chiave
 
-Dado + Dado Doganale (1-4 domanda, 5 Schengen raddoppia, 6 Jolly), "Il Momento" collettivo (con un 6 o sulle Arene: Berlino, Varsavia, Parigi), scambio merci su caselle blu (Milano, Riga, Bruxelles), carico max 3, contratti mai verso nazioni produttrici, scelta tra 2 contratti, cronometro 30s, vittoria a 3 contratti. Bot con difficoltà selezionabile (0.45/0.65/0.85). Salvataggio automatico in `localStorage` (chiave `steSalvataggioBot3` — va "bumpata" se cambia il percorso). Bandierine in SVG (`flagSVG`) perché le emoji-bandiera non si vedono su Windows.
+Dado + Dado Doganale (1-4 domanda, 5 Schengen raddoppia, 6 Jolly), "Il Momento" collettivo (con un 6 o sulle Arene: Berlino, Varsavia, Parigi), scambio merci su caselle blu (Milano, Riga, Bruxelles), carico max 3, contratti mai verso nazioni produttrici, scelta tra 2 contratti, cronometro 30s. **Vittoria (scelta confermata da Filippo il 17/07/2026): la partita FINISCE quando qualcuno completa 3 contratti, ma VINCE chi ha più punti totali (Integrazione+Cultura), anche con 0 contratti; spareggio sui contratti.** `finePartita` ordina per punti poi per fatti; il testo delle regole è stato reso esplicito su questo. Bot con difficoltà selezionabile (0.45/0.65/0.85). Salvataggio automatico in `localStorage` (chiave `steSalvataggioBot3` — va "bumpata" se cambia il percorso). Bandierine in SVG (`flagSVG`) perché le emoji-bandiera non si vedono su Windows.
+
+## Controllo pre-distribuzione (17/07/2026)
+
+Verifica completa dal vivo sul sito online, tutto OK: partita locale (175+ mosse robot, 0 errori), 1 giocatore in solitaria, lingua EN, salvataggio/ripresa, icona desktop, redirect distanza.html, gioco a distanza (handshake+specchio+permessi turno+tiro ospite), telefono (no overflow). Anomalie residue MINORI non corrette: (a) tabellone piccolo su telefono (accettabile, si usa la vista Pannello); (b) a distanza i modali "ruba/scambia" non hanno la guardia pointer-events sull'host — l'host potrebbe agire per l'ospite (raro, cooperativo, recuperabile) — se un giorno serve, replicare il pattern di `scegliContratto`. Dipendenza esterna: il gioco a distanza carica PeerJS da unpkg.com e usa il broker pubblico gratuito di PeerJS (nessuna registrazione, ma serve che unpkg/PeerJS siano raggiungibili); il gioco locale non dipende da nulla.
 
 ## Trappole note
 
