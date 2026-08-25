@@ -20,6 +20,8 @@ Oltre 220 domande su geografia, storia, cultura e istituzioni europee, in due li
 
 Si può giocare anche da **case diverse, perfino in nazioni diverse**: uno crea la partita e riceve un codice (es. `EU1234`), gli altri aprono la stessa pagina ed entrano col codice. Tutti vedono lo stesso tabellone in diretta e ognuno gioca dal proprio schermo quando è il suo turno. Le istruzioni complete sono nella pagina del gioco, alla voce "📖 Come funziona il gioco a distanza".
 
+Durante la partita a distanza è disponibile anche una **💬 chat testuale** tra i partecipanti (in basso a destra), per commentare le mosse: nessun permesso da concedere, nessun problema di privacy.
+
 ## Installazione (facoltativa)
 
 Nella schermata iniziale c'è il pulsante **"🖥 Inserisci un'icona sul desktop"**: con un clic il gioco si installa come una app, con l'icona della bandiera europea sul desktop o sulla schermata Home del telefono.
