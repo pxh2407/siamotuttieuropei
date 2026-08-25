@@ -730,7 +730,7 @@ function applyLang(){
   setText('btnEntraRem', tr("🔑 Entra con un codice","🔑 Join with a code"));
   setText('sumRemoto', tr("📖 Come funziona il gioco a distanza (istruzioni passo per passo)","📖 How remote play works (step-by-step instructions)"));
   setText('txtRemoto', tr(
-    `<p><b>Cosa serve:</b> una connessione a Internet e un browser (Chrome, Edge o Safari) su computer, tablet o telefono. Possono giocare da <b>2 a 5 persone</b> (1 organizzatore + fino a 4 ospiti), ognuna da casa propria, anche in nazioni diverse. Volendo, gioca anche il computer 🤖 "Europa" (casella in alto).</p>
+    `<p><b>Cosa serve:</b> una connessione a Internet e un browser (Chrome, Edge o Safari) su computer, tablet o telefono. Possono giocare da <b>2 a 6 persone</b> (1 organizzatore + fino a 5 ospiti), ognuna da casa propria, anche in nazioni diverse. Volendo, gioca anche il computer 🤖 "Europa" (casella in alto).</p>
      <p><b>👑 Per l'ORGANIZZATORE (chi crea la partita):</b></p>
      <ol style="padding-left:1.2em;">
        <li>Premi <b>"➕ Crea una partita"</b>, scrivi il tuo nome e conferma.</li>
@@ -749,7 +749,7 @@ function applyLang(){
      <p><b>🎲 Durante la partita:</b> tutti vedono lo stesso tabellone, che si aggiorna da solo. Quando è il <b>tuo</b> turno, i pulsanti (dado, risposte, azioni) si attivano sul tuo schermo: gli altri guardano. Durante <b>"Il Momento"</b> rispondono tutti, uno alla volta, ciascuno dal proprio schermo. Il cronometro delle domande è di 30 secondi come sempre.</p>
      <p><b>🔌 Se cade la connessione a un ospite:</b> niente paura — deve solo riaprire questa pagina, premere "🔑 Entra con un codice" e scrivere <b>lo stesso nome e lo stesso codice</b> di prima: rientra nella partita dov'era.</p>
      <p><b>Da sapere:</b> la lingua della partita è quella scelta dall'organizzatore; i suoni si sentono solo dal suo computer.</p>`,
-    `<p><b>What you need:</b> an Internet connection and a browser (Chrome, Edge or Safari) on a computer, tablet or phone. <b>2 to 5 people</b> can play (1 organizer + up to 4 guests), each from their own home, even in different countries. If you wish, the computer 🤖 "Europa" plays too (checkbox above).</p>
+    `<p><b>What you need:</b> an Internet connection and a browser (Chrome, Edge or Safari) on a computer, tablet or phone. <b>2 to 6 people</b> can play (1 organizer + up to 5 guests), each from their own home, even in different countries. If you wish, the computer 🤖 "Europa" plays too (checkbox above).</p>
      <p><b>👑 For the ORGANIZER (who creates the game):</b></p>
      <ol style="padding-left:1.2em;">
        <li>Press <b>"➕ Create a game"</b>, type your name and confirm.</li>
@@ -1869,7 +1869,7 @@ function hostSetupConn(conn){
         else{ try{conn.send({t:'no', msg:tr("La partita è già iniziata.","The game has already started.")});}catch(e){} }
         return;
       }
-      if(lobbyGuests.length>=4){ try{conn.send({t:'no', msg:tr("La partita è al completo.","The game is full.")});}catch(e){} return; }
+      if(lobbyGuests.length>=5){ try{conn.send({t:'no', msg:tr("La partita è al completo.","The game is full.")});}catch(e){} return; }
       let n=nome,k=2;
       while(n===hostNome() || lobbyGuests.some(g=>g.nome===n)) n=nome+" "+(k++);
       lobbyGuests.push({connId:conn.peer, nome:n});
