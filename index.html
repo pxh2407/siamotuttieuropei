@@ -91,6 +91,20 @@
   .tmr .sec{font-weight:800;color:var(--blu);min-width:44px;text-align:right;}
   .truck-label{font-weight:700;}
   @media(max-width:600px){html,body{font-size:16px;}}
+
+  /* ---- STAMPA: regole + istruzioni gioco a distanza ---- */
+  #stampaArea{display:none;}
+  @media print{
+    body{background:#fff;}
+    body > *:not(#stampaArea){display:none!important;}
+    #stampaArea{display:block!important;color:#000;font-size:12pt;line-height:1.45;padding:0 4mm;}
+    #stampaArea h1{color:#003399;font-size:20pt;margin:0 0 8pt;}
+    #stampaArea h2{color:#003399;font-size:15pt;margin:14pt 0 4pt;border-bottom:1pt solid #003399;padding-bottom:2pt;}
+    #stampaArea ul,#stampaArea ol{padding-left:7mm;margin:4pt 0;}
+    #stampaArea li{margin:3pt 0;}
+    #stampaArea p{margin:4pt 0;}
+    #stampaArea .stelleStampa{color:#FFB800;font-size:14pt;letter-spacing:2px;}
+  }
 </style>
 </head>
 <body>
@@ -154,6 +168,10 @@
     <summary id="sumRegole"></summary>
     <ul id="ulRegole"></ul>
   </details>
+
+  <div style="margin-top:14px;">
+    <button id="btnStampa" class="ghost" style="font-size:.95rem;" onclick="stampaRegole()"></button>
+  </div>
 </div>
 
 <!-- ================= GIOCO ================= -->
@@ -203,6 +221,9 @@
 
 <!-- ================= MODALE ================= -->
 <div id="overlay"><div id="modal"></div></div>
+
+<!-- ================= AREA DI STAMPA (visibile solo quando si stampa) ================= -->
+<div id="stampaArea"></div>
 
 <script>
 /* ============================================================
@@ -669,6 +690,7 @@ function applyLang(){
   setText('optDifficile', tr("Difficile (quasi infallibile)","Hard (nearly flawless)"));
   setText('lblSuoni', tr("🔊 Suoni","🔊 Sounds"));
   setText('btnInstall', tr("🖥 Inserisci un'icona sul desktop","🖥 Add an icon to your desktop"));
+  setText('btnStampa', tr("🖨 Stampa le regole e le istruzioni","🖨 Print the rules and instructions"));
   setText('hRemoto', tr("🌍 Gioca a distanza (case diverse)","🌍 Play remotely (different homes)"));
   setText('pRemoto', tr("Ogni giocatore apre questa pagina dal proprio computer o telefono. Uno crea la partita e detta agli altri il codice.","Each player opens this page on their own computer or phone. One creates the game and tells the others the code."));
   setText('btnCreaRem', tr("➕ Crea una partita","➕ Create a game"));
@@ -738,6 +760,22 @@ function setLang(l){
   if(players.length){ renderGiocatore(); renderScore(); disegnaMappa(); bannerTurno(); }
 }
 function toggleLang(){ setLang(lang==='it'?'en':'it'); }
+
+/* ---- Stampa: regole del gioco + istruzioni gioco a distanza ---- */
+function stampaRegole(){
+  const area=document.getElementById('stampaArea');
+  const titoloRemoto=document.getElementById('sumRemoto').textContent.replace(/^📖\s*/,'');
+  const istrRemoto=document.getElementById('txtRemoto').innerHTML;
+  area.innerHTML=`
+    <h1>🇪🇺 ${tr('SIAMO TUTTI EUROPEI','WE ARE ALL EUROPEANS')}</h1>
+    <div class="stelleStampa">★★★★★★★★★★★★</div>
+    <h2>${tr('📖 Come si gioca','📖 How to play')}</h2>
+    <p>${regoleIntroHTML()}</p>
+    <ul>${regoleListHTML()}</ul>
+    <h2>🌍 ${titoloRemoto}</h2>
+    ${istrRemoto}`;
+  window.print();
+}
 
 /* ---- Installazione come app (icona sul desktop / schermata Home) ---- */
 let promptInstall=null;
@@ -1584,7 +1622,10 @@ function mostraRegole(){
     <h2>${tr("📖 Come si gioca","📖 How to play")}</h2>
     <p style="font-size:1.1rem;">${regoleIntroHTML()}</p>
     <ul style="font-size:1.05rem;line-height:1.5;padding-left:1.1em;">${regoleListHTML()}</ul>
-    <div class="opzioni"><button class="oro" onclick="chiudiModale()">${tr("Ho capito ✔","Got it ✔")}</button></div>`;
+    <div class="opzioni">
+      <button class="ghost" onclick="stampaRegole()">${tr("🖨 Stampa le regole","🖨 Print the rules")}</button>
+      <button class="oro" onclick="chiudiModale()">${tr("Ho capito ✔","Got it ✔")}</button>
+    </div>`;
   document.getElementById("overlay").style.display="flex";
 }
 
