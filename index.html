@@ -105,6 +105,18 @@
     #stampaArea p{margin:4pt 0;}
     #stampaArea .stelleStampa{color:#FFB800;font-size:14pt;letter-spacing:2px;}
   }
+
+  /* ---- CHAT dei partecipanti (solo gioco a distanza) ---- */
+  #chatBox{position:fixed;right:12px;bottom:12px;width:300px;max-width:92vw;background:#fff;border:2px solid var(--blu);border-radius:14px;box-shadow:0 8px 24px rgba(0,0,0,.28);z-index:45;display:none;flex-direction:column;overflow:hidden;}
+  #chatBox.aperta{display:flex;}
+  #chatHead{background:var(--blu);color:#fff;padding:9px 13px;font-weight:700;cursor:pointer;display:flex;justify-content:space-between;align-items:center;font-size:1.05rem;}
+  #chatMsgs{height:190px;overflow-y:auto;padding:8px 10px;font-size:.98rem;background:#f6f9ff;}
+  #chatMsgs p{margin:3px 0;line-height:1.35;}
+  #chatVuota{color:#888;font-style:italic;}
+  #chatInputRow{display:flex;gap:6px;padding:8px;border-top:1px solid #dde;}
+  #chatInput{flex:1;font-size:1rem;padding:.45em .6em;border:2px solid #bbb;border-radius:8px;}
+  #chatBox.min #chatMsgs,#chatBox.min #chatInputRow{display:none;}
+  @media(max-width:600px){ #chatBox{width:260px;} #chatMsgs{height:150px;} }
 </style>
 </head>
 <body>
@@ -224,6 +236,16 @@
 
 <!-- ================= AREA DI STAMPA (visibile solo quando si stampa) ================= -->
 <div id="stampaArea"></div>
+
+<!-- ================= CHAT (solo gioco a distanza) ================= -->
+<div id="chatBox">
+  <div id="chatHead" onclick="toggleChat()"><span id="chatTitolo">💬 Chat</span><span id="chatMin">▾</span></div>
+  <div id="chatMsgs"></div>
+  <div id="chatInputRow">
+    <input id="chatInput" maxlength="200" onkeydown="if(event.key==='Enter')inviaChat()">
+    <button class="verde" onclick="inviaChat()" style="padding:.45em .8em;font-size:1.1rem;">➤</button>
+  </div>
+</div>
 
 <script>
 /* ============================================================
@@ -691,6 +713,8 @@ function applyLang(){
   setText('lblSuoni', tr("🔊 Suoni","🔊 Sounds"));
   setText('btnInstall', tr("🖥 Inserisci un'icona sul desktop","🖥 Add an icon to your desktop"));
   setText('btnStampa', tr("🖨 Stampa le regole e le istruzioni","🖨 Print the rules and instructions"));
+  setText('chatTitolo', tr("💬 Chat","💬 Chat"));
+  const chatInp=document.getElementById('chatInput'); if(chatInp) chatInp.placeholder=tr("Scrivi un messaggio…","Type a message…");
   setText('hRemoto', tr("🌍 Gioca a distanza (case diverse)","🌍 Play remotely (different homes)"));
   setText('pRemoto', tr("Ogni giocatore apre questa pagina dal proprio computer o telefono. Uno crea la partita e detta agli altri il codice.","Each player opens this page on their own computer or phone. One creates the game and tells the others the code."));
   setText('btnCreaRem', tr("➕ Crea una partita","➕ Create a game"));
@@ -1721,6 +1745,8 @@ function aggiornaAudioBtn(){ document.getElementById("btnAudio").textContent=aud
    ============================================================ */
 const REGIONI_MIRROR=['turnoBanner','dadoView','actions','cardGiocatore','scoreboard','log','boardBar','board','modal'];
 let remNomeVal="";
+let mioNome="";      // nome di questo giocatore (per la chat)
+let chatNonLetti=0;  // messaggi di chat non letti mentre è ridotta a icona
 
 function caricaPeerJS(cb){
   if(window.Peer) return cb();
@@ -1739,6 +1765,46 @@ function remotoNascondiLocale(h){
 }
 function remotoAnnulla(){ location.reload(); }
 
+/* ---- CHAT dei partecipanti (testo, solo gioco a distanza) ---- */
+function escapaHtml(s){ return String(s).replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+function mostraChatBox(){
+  const b=document.getElementById('chatBox'); if(!b) return;
+  b.classList.add('aperta'); b.classList.add('min');   // parte ridotta a barra
+  chatNonLetti=0; aggiornaChatMin();
+  const box=document.getElementById('chatMsgs');
+  if(box && !box.children.length) box.innerHTML=`<p id="chatVuota">${tr("Scrivete qui per parlare tra voi durante la partita.","Type here to talk to each other during the game.")}</p>`;
+}
+function toggleChat(){
+  const b=document.getElementById('chatBox'); if(!b) return;
+  b.classList.toggle('min');
+  if(!b.classList.contains('min')){ chatNonLetti=0; const i=document.getElementById('chatInput'); if(i) i.focus(); }
+  aggiornaChatMin();
+}
+function aggiornaChatMin(){
+  const b=document.getElementById('chatBox'), m=document.getElementById('chatMin'); if(!b||!m) return;
+  if(b.classList.contains('min')) m.textContent = chatNonLetti>0 ? ('● '+chatNonLetti) : '▸';
+  else m.textContent='▾';
+}
+function mostraChat(nome, testo){
+  const box=document.getElementById('chatMsgs'); if(!box) return;
+  const vuota=document.getElementById('chatVuota'); if(vuota) vuota.remove();
+  const mio = nome===mioNome;
+  const p=document.createElement('p');
+  p.innerHTML=`<b style="color:${mio?'var(--verde)':'var(--blu)'};">${escapaHtml(nome)}:</b> ${escapaHtml(testo)}`;
+  box.appendChild(p); box.scrollTop=box.scrollHeight;
+  const b=document.getElementById('chatBox');
+  if(b && b.classList.contains('min') && !mio){ chatNonLetti++; aggiornaChatMin(); }
+  beep(760,.04);
+}
+function inviaChat(){
+  const inp=document.getElementById('chatInput'); if(!inp) return;
+  const testo=inp.value.trim(); if(!testo) return;
+  inp.value='';
+  if(isHost){ chatDiffondi(hostNome(), testo); }
+  else if(myConn && myConn.open){ myConn.send({t:'chat', testo}); }   // l'host lo rimanda a tutti
+}
+function chatDiffondi(nome, testo){ mostraChat(nome, testo); broadcast({t:'chat', nome, testo}); }
+
 /* ---- ORGANIZZATORE: crea la partita ---- */
 function remoteCreaUI(){
   remotoNascondiLocale(true);
@@ -1753,6 +1819,7 @@ function remoteCreaUI(){
 function hostNome(){ return remNomeVal||tr("Organizzatore","Organizer"); }
 function remoteCrea(){
   remNomeVal=(document.getElementById('remNomeHost').value.trim())||tr("Organizzatore","Organizer");
+  mioNome=remNomeVal;
   const st=document.getElementById('remStato');
   st.innerHTML=tr("⏳ Creazione in corso…","⏳ Creating…");
   caricaPeerJS(()=>{
@@ -1801,6 +1868,11 @@ function hostSetupConn(conn){
       broadcastLobby(); renderLobbyHost();
     }
     else if(d.t==='click'){ eseguiClickRemoto(conn.peer,d); }
+    else if(d.t==='chat'){
+      const pl=players.find(x=>x.peer===conn.peer) || lobbyGuests.find(g=>g.connId===conn.peer);
+      const nome=pl?pl.nome:tr('Ospite','Guest');
+      chatDiffondi(nome, String(d.testo||'').slice(0,200));
+    }
   });
   conn.on('close',()=>{
     conns=conns.filter(c=>c!==conn);
@@ -1837,6 +1909,7 @@ function remoteStart(){
   aggiornaAudioBtn();
   log(()=>tr(`🎺 La partita a distanza ha inizio (codice ${remCode})! Buon viaggio in Europa.`,`🎺 The remote game begins (code ${remCode})! Have a good trip across Europe.`));
   jingle();
+  mostraChatBox();
   iniziaTurno();
 }
 
@@ -1854,6 +1927,7 @@ function remoteEntraUI(){
 }
 function remoteEntra(){
   const nome=(document.getElementById('remNomeG').value.trim())||tr("Ospite","Guest");
+  mioNome=nome;
   const code=document.getElementById('remCodeG').value.trim().toUpperCase();
   const st=document.getElementById('remStato');
   if(!/^EU\d{4}$/.test(code)){ st.innerHTML=tr("Il codice è del tipo EU1234: chiedilo all'organizzatore.","The code looks like EU1234: ask the organizer."); return; }
@@ -1894,8 +1968,10 @@ function guestOnData(d){
     document.getElementById('btnNuova').style.display='none';
     document.querySelectorAll('#gioco .btnLang').forEach(b=>b.style.display='none');
     vista('pan');
+    mostraChatBox();
   }
   else if(d.t==='m'){ applyMirror(d); }
+  else if(d.t==='chat'){ mostraChat(d.nome, d.testo); }
 }
 
 /* ---- Specchio dello schermo: host → ospiti ---- */
