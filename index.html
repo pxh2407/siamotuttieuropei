@@ -2038,8 +2038,8 @@ document.addEventListener('click',function(e){
   if(!guestMode) return;
   const b=e.target.closest('button');
   if(!b) return;
-  // questi pulsanti agiscono solo sullo schermo locale dell'ospite
-  if(['btnVista','btnAudio','btnRegole','btnInstall'].includes(b.id) || b.classList.contains('btnLang')) return;
+  // questi pulsanti agiscono solo sullo schermo locale dell'ospite (compresa la chat)
+  if(['btnVista','btnAudio','btnRegole','btnInstall'].includes(b.id) || b.classList.contains('btnLang') || b.closest('#chatBox')) return;
   e.preventDefault(); e.stopPropagation();
   if(!myConn || !myConn.open) return;
   let rg=null, ix=0;
