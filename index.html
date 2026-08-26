@@ -1951,10 +1951,10 @@ function remoteEntra(){
         if(remStarted) alert(tr("⚠️ Collegamento con l'organizzatore perso. Ricarica la pagina e rientra con lo stesso nome e lo stesso codice.","⚠️ Connection to the organizer lost. Reload the page and rejoin with the same name and code."));
         else{ const s2=document.getElementById('remStato'); if(s2) s2.innerHTML=tr("❌ Collegamento chiuso.","❌ Connection closed."); }
       });
-      setTimeout(()=>{ if(myConn && !myConn.open && !remStarted){ const s2=document.getElementById('remStato'); if(s2) s2.innerHTML=tr("❌ Nessuna partita trovata con questo codice: controllalo e riprova.","❌ No game found with this code: check it and try again."); } },9000);
+      setTimeout(()=>{ if(myConn && !myConn.open && !remStarted){ const s2=document.getElementById('remStato'); if(s2) s2.innerHTML=tr("❌ Collegamento non riuscito. Se il codice è giusto, di solito è un <b>antivirus</b>, un <b>firewall</b> o una <b>VPN</b> su questo computer a bloccare: prova a disattivarli un momento, oppure usa un <b>altro browser</b> o il <b>telefono</b>.","❌ Connection failed. If the code is correct, it is usually an <b>antivirus</b>, a <b>firewall</b> or a <b>VPN</b> on this computer blocking it: try turning them off for a moment, or use <b>another browser</b> or your <b>phone</b>."); } },12000);
     });
     peer.on('error',err=>{
-      if(err && err.type==='peer-unavailable'){ const s2=document.getElementById('remStato'); if(s2) s2.innerHTML=tr("❌ Nessuna partita trovata con questo codice: controllalo e riprova.","❌ No game found with this code: check it and try again."); }
+      if(err && err.type==='peer-unavailable'){ const s2=document.getElementById('remStato'); if(s2) s2.innerHTML=tr("❌ Nessuna partita trovata con questo codice. Controlla di averlo scritto giusto e che l'organizzatore abbia la partita ancora aperta.","❌ No game found with this code. Check you typed it right and that the organizer still has the game open."); }
       else{ const s2=document.getElementById('remStato'); if(s2) s2.innerHTML=tr("❌ Errore di collegamento.","❌ Connection error.")+" ("+((err&&err.type)||'?')+")"; }
     });
   });
