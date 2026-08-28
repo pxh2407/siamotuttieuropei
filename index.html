@@ -318,6 +318,7 @@ const MERCE_T = {                                        // nomi merci
   Grano:["Grano","Wheat"], Fiori:["Fiori","Flowers"], Pesce:["Pesce","Fish"]
 };
 const CITY_T = {                                         // nomi città (solo dove differiscono)
+  Berlino:"Berlin",
   Roma:"Rome", Milano:"Milan", Napoli:"Naples", Venezia:"Venice", Monaco:"Munich",
   Colonia:"Cologne", Bruxelles:"Brussels", Anversa:"Antwerp", Parigi:"Paris", Lione:"Lyon",
   Marsiglia:"Marseille", Barcellona:"Barcelona", Siviglia:"Seville", Ginevra:"Geneva",
@@ -674,8 +675,8 @@ Object.assign(TRAD.lv, {"Quale principio permetteva a un singolo deputato di blo
 
 /* --- Frasi fisse di gioco (pulsanti, modali, feedback, classifica, schermata a distanza) --- */
 Object.assign(TRAD.de, {"🃏 Jolly:":"🃏 Jolly:","La lingua è scelta dall'organizzatore.":"Die Sprache wählt der Organisator."});
-Object.assign(TRAD.pl, {"🃏 Jolly:":"🃏 Jolly:","La lingua è scelta dall'organizzatore.":"Język wybiera organizator."});
-Object.assign(TRAD.lv, {"🃏 Jolly:":"🃏 Jolly:","La lingua è scelta dall'organizzatore.":"Valodu izvēlas organizators."});
+Object.assign(TRAD.pl, {"🃏 Jolly:":"🃏 Jolly:","La lingua è scelta dall'organizzatore.":"Język wybiera organizator.","Madrid":"Madryt"});
+Object.assign(TRAD.lv, {"🃏 Jolly:":"🃏 Jolly:","La lingua è scelta dall'organizzatore.":"Valodu izvēlas organizators.","Madrid":"Madride"});
 Object.assign(TRAD.de, {"Su iPhone/iPad: tocca il pulsante Condividi (il quadrato con la freccia) e poi \"Aggiungi alla schermata Home\".":"Auf iPhone/iPad: tippe auf die Teilen-Taste (das Quadrat mit dem Pfeil) und dann auf \"Zum Home-Bildschirm\".","Apri il menu del browser (i tre puntini in alto a destra) e scegli \"Installa\" oppure \"Aggiungi alla schermata Home\".":"Öffne das Browser-Menü (die drei Punkte oben rechts) und wähle \"Installieren\" oder \"Zum Home-Bildschirm hinzufügen\"."});
 Object.assign(TRAD.pl, {"Su iPhone/iPad: tocca il pulsante Condividi (il quadrato con la freccia) e poi \"Aggiungi alla schermata Home\".":"Na iPhone/iPad: dotknij przycisku Udostępnij (kwadrat ze strzałką), a potem \"Dodaj do ekranu głównego\".","Apri il menu del browser (i tre puntini in alto a destra) e scegli \"Installa\" oppure \"Aggiungi alla schermata Home\".":"Otwórz menu przeglądarki (trzy kropki w prawym górnym rogu) i wybierz \"Zainstaluj\" lub \"Dodaj do ekranu głównego\"."});
 Object.assign(TRAD.lv, {"Su iPhone/iPad: tocca il pulsante Condividi (il quadrato con la freccia) e poi \"Aggiungi alla schermata Home\".":"Uz iPhone/iPad: pieskaries pogai Kopīgot (kvadrāts ar bultiņu) un tad \"Pievienot sākuma ekrānam\".","Apri il menu del browser (i tre puntini in alto a destra) e scegli \"Installa\" oppure \"Aggiungi alla schermata Home\".":"Atver pārlūka izvēlni (trīs punkti augšējā labajā stūrī) un izvēlies \"Instalēt\" vai \"Pievienot sākuma ekrānam\"."});
@@ -1433,11 +1434,18 @@ function renderNum(){
   });
 }
 function refreshNomi(){
-  const c=document.getElementById("righeNomi"); c.innerHTML="";
+  const c=document.getElementById("righeNomi");
+  const prec=[...c.querySelectorAll('input')].map(x=>x.value);   // nomi già digitati
+  // insieme di tutti i nomi-default nelle 5 lingue, per capire se un campo è un default o è stato personalizzato
+  const svl=lang, defAll=new Set();
+  CITTA_ID.forEach(id=>['it','en','de','pl','lv'].forEach(L=>{ lang=L; defAll.add(citta(id)); })); lang=svl;
+  c.innerHTML="";
   for(let i=0;i<nGiocatori;i++){
+    let val=citta(CITTA_ID[i]);                                  // nome-esempio tradotto nella lingua scelta
+    if(prec[i]!==undefined && prec[i].trim()!=='' && !defAll.has(prec[i])) val=prec[i]; // nome personalizzato: lo mantengo
     const row=document.createElement("div"); row.className="riga-nome";
     row.innerHTML=`<span class="pallino" style="background:${COLORI[i]}"></span>
-      <input id="nome${i}" maxlength="14" placeholder="${tr('Giocatore','Player')} ${i+1}" value="${CITTA_ID[i]}">`;
+      <input id="nome${i}" maxlength="14" placeholder="${tr('Giocatore','Player')} ${i+1}" value="${val}">`;
     c.appendChild(row);
   }
 }
