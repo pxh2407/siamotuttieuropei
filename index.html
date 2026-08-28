@@ -727,7 +727,10 @@ const CITTA_ID = ["Roma","Parigi","Berlino","Madrid","Bruxelles","Vienna"];
 function regoleIntroHTML(){
   return tr(
     `<b>Siamo Tutti Europei</b> è un viaggio-gioco tra le nazioni d'Europa: trasporti le merci, superi le frontiere a colpi di cultura e completi <b>3 contratti</b> per vincere.`,
-    `<b>Siamo Tutti Europei</b> (We Are All Europeans) is a journey-game across the nations of Europe: carry goods, cross borders with culture and complete <b>3 contracts</b> to win.`);
+    `<b>Siamo Tutti Europei</b> (We Are All Europeans) is a journey-game across the nations of Europe: carry goods, cross borders with culture and complete <b>3 contracts</b> to win.`,
+    `<b>Siamo Tutti Europei</b> ist ein Reise-Spiel durch die Nationen Europas: Du transportierst Waren, überquerst Grenzen mit Kultur und schließt <b>3 Aufträge</b> ab, um zu gewinnen.`,
+    `<b>Siamo Tutti Europei</b> to gra-podróż po krajach Europy: przewozisz towary, pokonujesz granice dzięki kulturze i realizujesz <b>3 kontrakty</b>, aby wygrać.`,
+    `<b>Siamo Tutti Europei</b> ir ceļojuma spēle pa Eiropas valstīm: tu pārvadā preces, šķērso robežas ar kultūras zināšanām un izpildi <b>3 līgumus</b>, lai uzvarētu.`);
 }
 function regoleListHTML(){
   return tr(
@@ -756,7 +759,46 @@ function regoleListHTML(){
      <li><b>🗺 Screen:</b> the game switches by itself between the board (while moving) and the panel (when you must act); with the <b>🗺/🎛</b> button at the top you can change view any time.</li>
      <li><b>⭐ Arena squares (red) or rolling a "6":</b> <b>The Moment</b> begins: a quiz for <b>all players</b>! +5 Culture for each correct answer; the first to answer correctly wins a Joker.</li>
      <li><b>🃏 Joker:</b> use it to <b>pass customs</b> without answering, or <b>steal a good</b> from an opponent.</li>
-     <li><b>🏆 End and winning:</b> the game ends as soon as a player completes <b>3 contracts</b>. <b>The winner is whoever scored the most points</b> (Integration + Culture): another player can therefore win too, if they collected more points by answering questions. In case of a points tie, the player with more contracts wins.</li>`);
+     <li><b>🏆 End and winning:</b> the game ends as soon as a player completes <b>3 contracts</b>. <b>The winner is whoever scored the most points</b> (Integration + Culture): another player can therefore win too, if they collected more points by answering questions. In case of a points tie, the player with more contracts wins.</li>`,
+    `<li><b>Ziel:</b> <b>3 Aufträge</b> abschließen, indem du die geforderte Ware ins Zielland lieferst.</li>
+     <li><b>🎲 Würfle</b>, um den kleinen Lastwagen über Europas Straßen zu bewegen.</li>
+     <li><b>⏱ Zeit:</b> du hast <b>30 Sekunden</b>, um jede Frage zu beantworten.</li>
+     <li><b>🛂 Grenzen (goldene Felder):</b> du hältst an und wirfst den <b>Zollwürfel</b> → 1-4 = Kulturfrage (bei falscher Antwort setzt du aus), 5 = Schengen (du passierst und verdoppelst deine Bewegung), 6 = Jolly (du passierst und erhältst ein Jolly).</li>
+     <li><b>📦 Grüne Felder (Städte):</b> hier kannst du die von der Nation erzeugten <b>Waren aufnehmen</b> (höchstens <b>3 Waren</b> auf dem Lastwagen).</li>
+     <li><b>🎯 Ziel:</b> die Felder des Landes, in das du liefern musst, sind mit einem blinkenden Rand in deiner Farbe <b>hervorgehoben</b>; nach jeder Lieferung <b>wählst du den neuen Auftrag</b> aus zwei Angeboten.</li>
+     <li><b>💾 Speichern:</b> das Spiel speichert sich in jeder Runde selbst; wenn du die Seite schließt, kannst du es später fortsetzen.</li>
+     <li><b>🤖 Computer:</b> wenn aktiviert, spielt "Europa" seine Runde allein: würfelt, beantwortet Fragen (er kann falsch liegen!) und liefert die Waren. Beobachte seine Züge auf dem Spielplan und im Protokoll.</li>
+     <li><b>🔵 Blaue Felder</b> (Mailand, Riga, Brüssel): Integrations-Bonus + eine Gratis-Ware; ist ein anderer Spieler da, könnt ihr <b>Waren tauschen</b>.</li>
+     <li><b>🗺 Bildschirm:</b> das Spiel wechselt von selbst zwischen Spielplan (während der Bewegung) und Panel (wenn du handeln musst); mit der Taste <b>🗺/🎛</b> oben wechselst du die Ansicht jederzeit.</li>
+     <li><b>⭐ Arena-Felder (rot) oder eine "6" mit dem Würfel:</b> es beginnt <b>Der Moment</b>: ein Quiz für <b>alle Spieler</b>! +5 Kultur für jede richtige Antwort; der Erste, der richtig antwortet, gewinnt ein Jolly.</li>
+     <li><b>🃏 Jolly:</b> du kannst es verwenden, um <b>den Zoll ohne Antwort zu passieren</b> oder einem Gegner <b>eine Ware zu stehlen</b>.</li>
+     <li><b>🏆 Ende und Sieg:</b> das Spiel endet, sobald ein Spieler <b>3 Aufträge</b> abschließt. <b>Es gewinnt, wer die meisten Punkte</b> (Integration + Kultur) gesammelt hat: also kann auch ein anderer Spieler gewinnen, wenn er durch das Beantworten der Fragen mehr Punkte gesammelt hat. Bei Punktgleichheit gewinnt, wer mehr Aufträge hat.</li>`,
+    `<li><b>Cel:</b> zrealizować <b>3 kontrakty</b>, dostarczając wymagany towar do kraju docelowego.</li>
+     <li><b>🎲 Rzuć kostką</b>, aby przesunąć ciężarówkę po drogach Europy.</li>
+     <li><b>⏱ Czas:</b> masz <b>30 sekund</b> na odpowiedź na każde pytanie.</li>
+     <li><b>🛂 Granice (złote pola):</b> zatrzymujesz się i rzucasz <b>Kostką celną</b> → 1-4 = pytanie o kulturę (jeśli źle, tracisz kolejkę), 5 = Schengen (przechodzisz i podwajasz ruch), 6 = Jolly (przechodzisz i zdobywasz Jolly).</li>
+     <li><b>📦 Zielone pola (miasta):</b> tutaj możesz <b>zabrać towary</b> produkowane przez dany kraj (najwyżej <b>3 towary</b> na ciężarówce).</li>
+     <li><b>🎯 Cel podróży:</b> pola kraju, do którego masz dostarczyć towar, są <b>podświetlone</b> migającą ramką w twoim kolorze; po każdej dostawie <b>wybierasz nowy kontrakt</b> spośród dwóch propozycji.</li>
+     <li><b>💾 Zapis:</b> gra zapisuje się sama po każdej kolejce; jeśli zamkniesz stronę, możesz później wznowić grę.</li>
+     <li><b>🤖 Komputer:</b> jeśli włączony, "Europa" sam rozgrywa swoją kolejkę: rzuca kostką, odpowiada na pytania (może się mylić!) i dostarcza towary. Obserwuj jego ruchy na planszy i w dzienniku.</li>
+     <li><b>🔵 Niebieskie pola</b> (Mediolan, Ryga, Bruksela): bonus Integracji + jeden darmowy towar; jeśli jest inny gracz, możecie <b>wymienić się towarami</b>.</li>
+     <li><b>🗺 Ekran:</b> gra sama przełącza się między planszą (podczas ruchu) a panelem (gdy musisz działać); przyciskiem <b>🗺/🎛</b> u góry zmieniasz widok, kiedy chcesz.</li>
+     <li><b>⭐ Pola Areny (czerwone) lub "6" na kostce:</b> zaczyna się <b>Moment</b>: quiz dla <b>wszystkich graczy</b>! +5 Kultury za każdą dobrą odpowiedź; pierwszy, kto odpowie poprawnie, wygrywa Jolly.</li>
+     <li><b>🃏 Jolly:</b> możesz go użyć, aby <b>przejść odprawę celną</b> bez odpowiedzi lub <b>ukraść towar</b> przeciwnikowi.</li>
+     <li><b>🏆 Koniec i zwycięstwo:</b> gra kończy się, gdy tylko gracz zrealizuje <b>3 kontrakty</b>. <b>Wygrywa ten, kto zdobył najwięcej punktów</b> (Integracja + Kultura): może więc wygrać także inny gracz, jeśli zebrał więcej punktów, odpowiadając na pytania. Przy remisie punktowym wygrywa ten, kto ma więcej kontraktów.</li>`,
+    `<li><b>Mērķis:</b> izpildīt <b>3 līgumus</b>, nogādājot pieprasīto preci mērķa valstī.</li>
+     <li><b>🎲 Met kauliņu</b>, lai pārvietotu kravas mašīnu pa Eiropas ceļiem.</li>
+     <li><b>⏱ Laiks:</b> tev ir <b>30 sekundes</b>, lai atbildētu uz katru jautājumu.</li>
+     <li><b>🛂 Robežas (zelta lauciņi):</b> tu apstājies un met <b>Muitas kauliņu</b> → 1-4 = kultūras jautājums (ja kļūdies, izlaid gājienu), 5 = Šengena (tu ej cauri un dubulto kustību), 6 = Jolly (tu ej cauri un iegūsti Jolly).</li>
+     <li><b>📦 Zaļie lauciņi (pilsētas):</b> šeit tu vari <b>paņemt preces</b>, ko ražo attiecīgā valsts (ne vairāk kā <b>3 preces</b> uz mašīnas).</li>
+     <li><b>🎯 Galamērķis:</b> tās valsts lauciņi, kur tev jāpiegādā prece, ir <b>izcelti</b> ar mirgojošu tavas krāsas apmali; pēc katras piegādes tu <b>izvēlies jaunu līgumu</b> no diviem piedāvājumiem.</li>
+     <li><b>💾 Saglabāšana:</b> spēle saglabājas pati katrā gājienā; ja aizver lapu, vēlāk vari to turpināt.</li>
+     <li><b>🤖 Dators:</b> ja ieslēgts, "Europa" pats izspēlē savu gājienu: met kauliņu, atbild uz jautājumiem (var kļūdīties!) un piegādā preces. Vēro viņa gājienus uz laukuma un žurnālā.</li>
+     <li><b>🔵 Zilie lauciņi</b> (Milāna, Rīga, Brisele): Integrācijas bonuss + viena bezmaksas prece; ja tur ir cits spēlētājs, jūs varat <b>apmainīties ar precēm</b>.</li>
+     <li><b>🗺 Ekrāns:</b> spēle pati pārslēdzas starp laukumu (kustības laikā) un paneli (kad jārīkojas); ar pogu <b>🗺/🎛</b> augšā vari mainīt skatu, kad vēlies.</li>
+     <li><b>⭐ Arēnas lauciņi (sarkani) vai "6" ar kauliņu:</b> sākas <b>Moments</b>: viktorīna <b>visiem spēlētājiem</b>! +5 Kultūra par katru pareizu atbildi; pirmais, kas atbild pareizi, iegūst Jolly.</li>
+     <li><b>🃏 Jolly:</b> vari to izmantot, lai <b>izietu cauri muitai</b> bez atbildes vai <b>nozagtu preci</b> pretiniekam.</li>
+     <li><b>🏆 Beigas un uzvara:</b> spēle beidzas, tiklīdz kāds spēlētājs izpilda <b>3 līgumus</b>. <b>Uzvar tas, kurš savācis visvairāk punktu</b> (Integrācija + Kultūra): tātad var uzvarēt arī cits spēlētājs, ja viņš, atbildot uz jautājumiem, savācis vairāk punktu. Vienādu punktu gadījumā uzvar tas, kam ir vairāk līgumu.</li>`);
 }
 
 /* ---- Applica la lingua a tutti i testi fissi dell'interfaccia ---- */
