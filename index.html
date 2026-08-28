@@ -2387,7 +2387,14 @@ function hostSetupConn(conn){
     }
   });
 }
-function broadcastLobby(){ broadcast({t:'lobby', nomi:[hostNome(),...lobbyGuests.map(g=>g.nome)]}); }
+function broadcastLobby(){ broadcast({t:'lobby', nomi:[hostNome(),...lobbyGuests.map(g=>g.nome)], lang}); }
+// Menu lingua degli ospiti: la lingua la sceglie l'organizzatore
+function bloccaLingueOspite(bloc){
+  document.querySelectorAll('.langSel').forEach(s=>{
+    s.disabled=!!bloc;
+    s.title = bloc ? tr("La lingua è scelta dall'organizzatore.","The language is chosen by the organizer.") : "";
+  });
+}
 function broadcast(m){ conns.forEach(c=>{ try{ if(c.open) c.send(m); }catch(e){} }); }
 
 function remoteStart(){
@@ -2442,7 +2449,7 @@ function remoteEntra(){
       myConn.on('data',d=>guestOnData(d));
       myConn.on('close',()=>{
         if(remStarted) alert(tr("⚠️ Collegamento con l'organizzatore perso. Ricarica la pagina e rientra con lo stesso nome e lo stesso codice.","⚠️ Connection to the organizer lost. Reload the page and rejoin with the same name and code."));
-        else{ const s2=document.getElementById('remStato'); if(s2) s2.innerHTML=tr("❌ Collegamento chiuso.","❌ Connection closed."); }
+        else{ bloccaLingueOspite(false); const s2=document.getElementById('remStato'); if(s2) s2.innerHTML=tr("❌ Collegamento chiuso.","❌ Connection closed."); }
       });
       setTimeout(()=>{ if(myConn && !myConn.open && !remStarted){ const s2=document.getElementById('remStato'); if(s2) s2.innerHTML=tr("❌ Collegamento non riuscito. Se il codice è giusto, di solito è un <b>antivirus</b>, un <b>firewall</b> o una <b>VPN</b> su questo computer a bloccare: prova a disattivarli un momento, oppure usa un <b>altro browser</b> o il <b>telefono</b>.","❌ Connection failed. If the code is correct, it is usually an <b>antivirus</b>, a <b>firewall</b> or a <b>VPN</b> on this computer blocking it: try turning them off for a moment, or use <b>another browser</b> or your <b>phone</b>."); } },12000);
     });
@@ -2455,10 +2462,13 @@ function remoteEntra(){
 function guestOnData(d){
   if(!d||typeof d!=='object') return;
   if(d.t==='lobby'){
+    if(d.lang && d.lang!==lang){ lang=d.lang; applyLang(); }   // la lingua la decide l'organizzatore
+    bloccaLingueOspite(true);
     const st=document.getElementById('remStato');
     if(st) st.innerHTML=tr("✅ Sei dentro! In attesa che l'organizzatore avvii la partita…","✅ You're in! Waiting for the organizer to start…")+"<br><b>"+tr("Giocatori:","Players:")+"</b> "+d.nomi.join(" · ");
   }
   else if(d.t==='no'){
+    bloccaLingueOspite(false);
     const st=document.getElementById('remStato'); if(st) st.innerHTML="❌ "+d.msg;
     try{myConn.close();}catch(e){}
   }
