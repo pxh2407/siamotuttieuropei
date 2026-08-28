@@ -57,6 +57,9 @@
   .topbar .stelle{font-size:1.1rem;}
   .lute-badge{background:#fff;border-radius:8px;padding:3px 8px;display:inline-flex;align-items:center;flex:0 0 auto;}
   .lute-badge img{height:48px;width:auto;display:block;}
+  .langSel{font-family:inherit;font-size:1rem;font-weight:600;padding:.4em .6em;border-radius:10px;border:2px solid var(--blu);background:#fff;color:var(--blu);cursor:pointer;}
+  .langSelTop{background:transparent;color:#fff;border-color:#fff;}
+  .langSelTop option{color:#1a1a2e;}
   .layout{display:flex;gap:16px;padding:16px;align-items:flex-start;flex-wrap:wrap;}
   .mappa-box{flex:1 1 560px;min-width:340px;background:var(--carta);border-radius:16px;padding:10px;box-shadow:0 6px 20px rgba(0,0,0,.1);}
   svg{width:100%;height:auto;display:block;border-radius:12px;background:var(--mare);}
@@ -137,7 +140,7 @@
   <div style="text-align:center;margin-bottom:8px;"><img src="logo-lute.png?v=2" alt="LUTE Milazzo" style="height:64px;width:auto;"></div>
   <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;">
     <div class="stelle">★★★★★★★★★★★★</div>
-    <button class="ghost btnLang" onclick="toggleLang()">🌐 English</button>
+    <select class="langSel" aria-label="Lingua" onchange="setLang(this.value)"></select>
   </div>
   <h1>SIAMO TUTTI EUROPEI</h1>
   <p id="introTxt" style="font-size:1.1rem;"></p>
@@ -205,7 +208,7 @@
     <h1>🇪🇺 Siamo Tutti Europei</h1>
     <div class="stelle">★★★★★★★★★★★★</div>
     <div>
-      <button class="ghost btnLang" style="background:transparent;color:#fff;border-color:#fff;" onclick="toggleLang()">🌐 English</button>
+      <select class="langSel langSelTop" aria-label="Lingua" onchange="setLang(this.value)"></select>
       <button id="btnVista" class="ghost" style="background:transparent;color:#fff;border-color:#fff;" onclick="toggleVista()">🗺 Tabellone</button>
       <button id="btnRegole" class="ghost" style="background:transparent;color:#fff;border-color:#fff;" onclick="mostraRegole()">📖 Regole</button>
       <button class="ghost" style="background:transparent;color:#fff;border-color:#fff;" onclick="toggleAudio()" id="btnAudio">🔊</button>
@@ -275,8 +278,33 @@ const NAZIONI = ["Italia","Svizzera","Germania","Belgio","Francia","Spagna","Aus
    LINGUA (Italiano / English)
    ============================================================ */
 let lang = 'it';
-function tr(it,en){ return lang==='en'?en:it; }          // testo a due lingue
-const _k = ()=> lang==='en'?1:0;
+const LINGUE = [
+  {c:'it', nome:'Italiano'},
+  {c:'en', nome:'English'},
+  {c:'de', nome:'Deutsch'},
+  {c:'pl', nome:'Polski'},
+  {c:'lv', nome:'Latviešu'}
+];
+// Dizionari di traduzione (riempiti più in basso): chiave = testo italiano, valore = traduzione.
+// Se una frase non è ancora tradotta, si usa automaticamente l'inglese.
+const TRAD = { de:{}, pl:{}, lv:{} };
+// tr: per l'interfaccia fissa si chiama con (it,en) e usa il dizionario;
+// per le frasi dinamiche (con nomi/numeri dentro) si passano tutte e 5 le lingue.
+function tr(it,en,de,pl,lv){
+  if(lang==='it') return it;
+  if(lang==='en') return en;
+  const inline = {de:de, pl:pl, lv:lv}[lang];
+  if(inline!==undefined && inline!==null) return inline;
+  const d = TRAD[lang] ? TRAD[lang][it] : undefined;
+  return (d!==undefined && d!==null) ? d : en;
+}
+// trv: traduce un array [it,en] (nazioni, merci, domande) via dizionario per de/pl/lv.
+function trv(a){
+  if(lang==='it') return a[0];
+  if(lang==='en') return a[1];
+  const d = TRAD[lang] ? TRAD[lang][a[0]] : undefined;
+  return (d!==undefined && d!==null) ? d : a[1];
+}
 const NAZ_T = {                                          // nomi nazioni
   Italia:["Italia","Italy"], Svizzera:["Svizzera","Switzerland"], Germania:["Germania","Germany"],
   Belgio:["Belgio","Belgium"], Francia:["Francia","France"], Spagna:["Spagna","Spain"], Austria:["Austria","Austria"],
@@ -299,15 +327,39 @@ const CITY_T = {                                         // nomi città (solo do
   Basilea:"Basel", Salisburgo:"Salzburg", Cracovia:"Krakow", "L'Aia":"The Hague",
   Gand:"Ghent"
 };
-function naz(n){ return NAZ_T[n]?NAZ_T[n][_k()]:n; }
-function merce(g){ return MERCE_T[g]?MERCE_T[g][_k()]:g; }
-function citta(c){ return (lang==='en'&&CITY_T[c])?CITY_T[c]:c; }
+function naz(n){ return NAZ_T[n]?trv(NAZ_T[n]):n; }
+function merce(g){ return MERCE_T[g]?trv(MERCE_T[g]):g; }
+function citta(c){
+  if(lang==='it') return c;
+  const d = TRAD[lang] ? TRAD[lang][c] : undefined;
+  if(d!==undefined && d!==null) return d;
+  return CITY_T[c]||c;   // inglese dove esiste, altrimenti il nome originale
+}
 function locQ(q){ // localizza una domanda e mescola l'ordine delle risposte
-  const i=_k();
   const idx=q.o.map((_,j)=>j);
   for(let j=idx.length-1;j>0;j--){ const r=Math.floor(Math.random()*(j+1)); [idx[j],idx[r]]=[idx[r],idx[j]]; }
-  return {q:q.q[i], o:idx.map(j=>q.o[j][i]), a:idx.indexOf(q.a)};
+  return {q:trv(q.q), o:idx.map(j=>trv(q.o[j])), a:idx.indexOf(q.a)};
 }
+
+/* ============================================================
+   DIZIONARI DI TRADUZIONE — Deutsch / Polski / Latviešu
+   Chiave = frase italiana esatta. Se manca, si usa l'inglese.
+   ============================================================ */
+Object.assign(TRAD.de, {
+  "Italia":"Italien","Svizzera":"Schweiz","Germania":"Deutschland","Belgio":"Belgien","Francia":"Frankreich","Spagna":"Spanien","Austria":"Österreich","Portogallo":"Portugal","Paesi Bassi":"Niederlande","Polonia":"Polen","Lituania":"Litauen","Lettonia":"Lettland","Estonia":"Estland","Danimarca":"Dänemark","Norvegia":"Norwegen",
+  "Formaggio":"Käse","Auto":"Auto","Orologi":"Uhren","Vino":"Wein","Legname":"Holz","Grano":"Getreide","Fiori":"Blumen","Pesce":"Fisch",
+  "Quanti giocatori? (da 1 a 6)":"Wie viele Spieler? (1 bis 6)","Nomi dei giocatori":"Namen der Spieler","▶ Inizia la partita":"▶ Spiel starten","💾 Riprendi la partita salvata":"💾 Gespeichertes Spiel fortsetzen","🤖 Gioca anche il computer (\"Europa\")":"🤖 Der Computer spielt mit (\"Europa\")","Bravura del computer:":"Spielstärke des Computers:","Facile (sbaglia spesso)":"Leicht (macht oft Fehler)","Normale":"Normal","Difficile (quasi infallibile)":"Schwer (fast unfehlbar)","🔊 Suoni":"🔊 Töne","🖨 Stampa le regole e le istruzioni":"🖨 Regeln und Anleitung drucken","💬 Chat":"💬 Chat","🌍 Gioca a distanza (case diverse)":"🌍 Aus der Ferne spielen (verschiedene Orte)","Ogni giocatore apre questa pagina dal proprio computer o telefono. Uno crea la partita e detta agli altri il codice.":"Jeder Spieler öffnet diese Seite auf seinem eigenen Computer oder Handy. Einer erstellt das Spiel und nennt den anderen den Code.","➕ Crea una partita":"➕ Spiel erstellen","🔑 Entra con un codice":"🔑 Mit Code beitreten","📖 Come funziona il gioco a distanza (istruzioni passo per passo)":"📖 Wie das Fernspiel funktioniert (Schritt für Schritt)","🖥 Inserisci un'icona sul desktop":"🖥 Symbol auf dem Desktop hinzufügen","📖 Come si gioca (regole)":"📖 Spielanleitung (Regeln)","📖 Regole":"📖 Regeln","↺ Nuova partita":"↺ Neues Spiel","🎛 Pannello":"🎛 Panel","🗺 Tabellone":"🗺 Spielplan","🎲 Tira il dado":"🎲 Würfeln","🏆 Classifica":"🏆 Rangliste","📜 Diario di gioco":"📜 Spielprotokoll","Tocca a…":"Am Zug ist…","Scrivi un messaggio…":"Nachricht schreiben…","Giocatore":"Spieler","Ho capito ✔":"Verstanden ✔","🖨 Stampa le regole":"🖨 Regeln drucken"
+});
+Object.assign(TRAD.pl, {
+  "Italia":"Włochy","Svizzera":"Szwajcaria","Germania":"Niemcy","Belgio":"Belgia","Francia":"Francja","Spagna":"Hiszpania","Austria":"Austria","Portogallo":"Portugalia","Paesi Bassi":"Holandia","Polonia":"Polska","Lituania":"Litwa","Lettonia":"Łotwa","Estonia":"Estonia","Danimarca":"Dania","Norvegia":"Norwegia",
+  "Formaggio":"Ser","Auto":"Samochód","Orologi":"Zegarki","Vino":"Wino","Legname":"Drewno","Grano":"Zboże","Fiori":"Kwiaty","Pesce":"Ryby",
+  "Quanti giocatori? (da 1 a 6)":"Ilu graczy? (od 1 do 6)","Nomi dei giocatori":"Imiona graczy","▶ Inizia la partita":"▶ Rozpocznij grę","💾 Riprendi la partita salvata":"💾 Wznów zapisaną grę","🤖 Gioca anche il computer (\"Europa\")":"🤖 Komputer też gra (\"Europa\")","Bravura del computer:":"Poziom komputera:","Facile (sbaglia spesso)":"Łatwy (często się myli)","Normale":"Normalny","Difficile (quasi infallibile)":"Trudny (prawie nieomylny)","🔊 Suoni":"🔊 Dźwięki","🖨 Stampa le regole e le istruzioni":"🖨 Wydrukuj zasady i instrukcje","💬 Chat":"💬 Czat","🌍 Gioca a distanza (case diverse)":"🌍 Graj na odległość (różne domy)","Ogni giocatore apre questa pagina dal proprio computer o telefono. Uno crea la partita e detta agli altri il codice.":"Każdy gracz otwiera tę stronę na swoim komputerze lub telefonie. Jeden tworzy grę i podaje pozostałym kod.","➕ Crea una partita":"➕ Utwórz grę","🔑 Entra con un codice":"🔑 Dołącz przez kod","📖 Come funziona il gioco a distanza (istruzioni passo per passo)":"📖 Jak działa gra na odległość (krok po kroku)","🖥 Inserisci un'icona sul desktop":"🖥 Dodaj ikonę na pulpicie","📖 Come si gioca (regole)":"📖 Jak grać (zasady)","📖 Regole":"📖 Zasady","↺ Nuova partita":"↺ Nowa gra","🎛 Pannello":"🎛 Panel","🗺 Tabellone":"🗺 Plansza","🎲 Tira il dado":"🎲 Rzuć kostką","🏆 Classifica":"🏆 Ranking","📜 Diario di gioco":"📜 Dziennik gry","Tocca a…":"Kolej na…","Scrivi un messaggio…":"Napisz wiadomość…","Giocatore":"Gracz","Ho capito ✔":"Rozumiem ✔","🖨 Stampa le regole":"🖨 Wydrukuj zasady"
+});
+Object.assign(TRAD.lv, {
+  "Italia":"Itālija","Svizzera":"Šveice","Germania":"Vācija","Belgio":"Beļģija","Francia":"Francija","Spagna":"Spānija","Austria":"Austrija","Portogallo":"Portugāle","Paesi Bassi":"Nīderlande","Polonia":"Polija","Lituania":"Lietuva","Lettonia":"Latvija","Estonia":"Igaunija","Danimarca":"Dānija","Norvegia":"Norvēģija",
+  "Formaggio":"Siers","Auto":"Automašīna","Orologi":"Pulksteņi","Vino":"Vīns","Legname":"Kokmateriāli","Grano":"Labība","Fiori":"Ziedi","Pesce":"Zivis",
+  "Quanti giocatori? (da 1 a 6)":"Cik spēlētāju? (no 1 līdz 6)","Nomi dei giocatori":"Spēlētāju vārdi","▶ Inizia la partita":"▶ Sākt spēli","💾 Riprendi la partita salvata":"💾 Turpināt saglabāto spēli","🤖 Gioca anche il computer (\"Europa\")":"🤖 Spēlē arī dators (\"Europa\")","Bravura del computer:":"Datora prasme:","Facile (sbaglia spesso)":"Viegli (bieži kļūdās)","Normale":"Vidēji","Difficile (quasi infallibile)":"Grūti (gandrīz nekļūdīgs)","🔊 Suoni":"🔊 Skaņas","🖨 Stampa le regole e le istruzioni":"🖨 Drukāt noteikumus un instrukcijas","💬 Chat":"💬 Tērzēšana","🌍 Gioca a distanza (case diverse)":"🌍 Spēlēt no attāluma (dažādas mājas)","Ogni giocatore apre questa pagina dal proprio computer o telefono. Uno crea la partita e detta agli altri il codice.":"Katrs spēlētājs atver šo lapu savā datorā vai telefonā. Viens izveido spēli un nosauc pārējiem kodu.","➕ Crea una partita":"➕ Izveidot spēli","🔑 Entra con un codice":"🔑 Pievienoties ar kodu","📖 Come funziona il gioco a distanza (istruzioni passo per passo)":"📖 Kā darbojas spēle no attāluma (soli pa solim)","🖥 Inserisci un'icona sul desktop":"🖥 Pievienot ikonu darbvirsmā","📖 Come si gioca (regole)":"📖 Kā spēlēt (noteikumi)","📖 Regole":"📖 Noteikumi","↺ Nuova partita":"↺ Jauna spēle","🎛 Pannello":"🎛 Panelis","🗺 Tabellone":"🗺 Spēles laukums","🎲 Tira il dado":"🎲 Mest kauliņu","🏆 Classifica":"🏆 Rezultāti","📜 Diario di gioco":"📜 Spēles žurnāls","Tocca a…":"Gājiens ir…","Scrivi un messaggio…":"Rakstiet ziņu…","Giocatore":"Spēlētājs","Ho capito ✔":"Sapratu ✔","🖨 Stampa le regole":"🖨 Drukāt noteikumus"
+});
 
 // Caselle del percorso: {n=nazione, t=tipo, city, goods?}
 // tipo: normal | frontier | blue | arena | pickup
@@ -711,7 +763,7 @@ function regoleListHTML(){
 function setText(id,html){ const e=document.getElementById(id); if(e) e.innerHTML=html; }
 function applyLang(){
   document.documentElement.lang = lang;
-  document.querySelectorAll('.btnLang').forEach(b=> b.textContent = lang==='it' ? '🌐 English' : '🌐 Italiano');
+  document.querySelectorAll('.langSel').forEach(s=>{ if(s.value!==lang) s.value=lang; });
   // schermata iniziale
   setText('introTxt', regoleIntroHTML());
   setText('hNum', tr("Quanti giocatori? (da 1 a 6)","How many players? (1 to 6)"));
@@ -926,7 +978,14 @@ function riprendiPartita(){
 /* ============================================================
    SETUP
    ============================================================ */
+function popolaLingue(){
+  document.querySelectorAll('.langSel').forEach(s=>{
+    s.innerHTML = LINGUE.map(L=>`<option value="${L.c}">${L.nome}</option>`).join('');
+    s.value = lang;
+  });
+}
 function initSetup(){
+  popolaLingue();
   const nd = document.getElementById("numGiocatori");
   nd.innerHTML="";
   for(let i=1;i<=6;i++){
@@ -1979,7 +2038,7 @@ function guestOnData(d){
     document.getElementById('setup').style.display='none';
     document.getElementById('gioco').style.display='block';
     document.getElementById('btnNuova').style.display='none';
-    document.querySelectorAll('#gioco .btnLang').forEach(b=>b.style.display='none');
+    document.querySelectorAll('#gioco .langSel').forEach(b=>b.style.display='none');
     vista('pan');
     mostraChatBox();
   }
